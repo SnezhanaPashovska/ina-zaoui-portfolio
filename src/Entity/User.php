@@ -31,6 +31,9 @@ class User
     #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'user')]
     private Collection $medias;
 
+    #[ORM\Column(type: 'string')]
+    private ?string $password = null;
+
     public function __construct()
     {
         $this->medias = new ArrayCollection();
@@ -91,5 +94,27 @@ class User
     public function setAdmin(bool $admin): void
     {
         $this->admin = $admin;
+    }
+
+    // Add the getter and setter for the password field
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+        return $this;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void
+    {
+        //
     }
 }

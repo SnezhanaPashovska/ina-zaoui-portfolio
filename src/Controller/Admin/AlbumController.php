@@ -6,18 +6,26 @@ use App\Entity\Album;
 use App\Entity\Media;
 use App\Form\AlbumType;
 use App\Form\MediaType;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class AlbumController extends AbstractController
 {
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
     /**
      * @Route("/admin/album", name="admin_album_index")
      */
     public function index()
     {
-        $albums = $this->getDoctrine()->getRepository(Album::class)->findAll();
+        $albums = $this->entityManager->getRepository(Album::class)->findAll();
 
         return $this->render('admin/album/index.html.twig', ['albums' => $albums]);
     }
@@ -32,8 +40,8 @@ class AlbumController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->persist($album);
-            $this->getDoctrine()->getManager()->flush();
+            $this->entityManager->persist($album);
+            $this->entityManager->flush();
 
             return $this->redirectToRoute('admin_album_index');
         }
@@ -46,12 +54,12 @@ class AlbumController extends AbstractController
      */
     public function update(Request $request, int $id)
     {
-        $album = $this->getDoctrine()->getRepository(Album::class)->find($id);
+        $album = $this->entityManager->getRepository(Album::class)->find($id);
         $form = $this->createForm(AlbumType::class, $album);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $this->entityManager->flush();
 
             return $this->redirectToRoute('admin_album_index');
         }
@@ -64,9 +72,9 @@ class AlbumController extends AbstractController
      */
     public function delete(int $id)
     {
-        $media = $this->getDoctrine()->getRepository(Album::class)->find($id);
-        $this->getDoctrine()->getManager()->remove($media);
-        $this->getDoctrine()->getManager()->flush();
+        $album = $this->entityManager->getRepository(Album::class)->find($id);
+        $this->entityManager->remove($album);
+        $this->entityManager->flush();
 
         return $this->redirectToRoute('admin_album_index');
     }
