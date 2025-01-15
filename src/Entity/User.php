@@ -3,118 +3,107 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 180)]
+    private ?string $username = null;
+
+    /**
+     * @var list<string> The user roles
+     */
     #[ORM\Column]
-    private bool $admin = false;
+    private array $roles = [];
 
+    /**
+     * @var string The hashed password
+     */
     #[ORM\Column]
-    private ?string $name;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $description;
-
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
-
-    #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'user')]
-    private Collection $medias;
-
-    #[ORM\Column(type: 'string')]
     private ?string $password = null;
-
-    public function __construct()
-    {
-        $this->medias = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getUsername(): ?string
     {
-        return $this->email;
+        return $this->username;
     }
 
-    public function setEmail(string $email): static
+    public function setUsername(string $username): static
     {
-        $this->email = $email;
+        $this->username = $username;
 
         return $this;
     }
 
-    public function getName(): ?string
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
     {
-        return $this->name;
+        return (string) $this->username;
     }
 
-    public function setName(?string $name): void
+    /**
+     * @see UserInterface
+     *
+     * @return list<string>
+     */
+    public function getRoles(): array
     {
-        $this->name = $name;
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
     }
 
-    public function getDescription(): ?string
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
     {
-        return $this->description;
+        $this->roles = $roles;
+
+        return $this;
     }
 
-    public function setDescription(?string $description): void
-    {
-        $this->description = $description;
-    }
-
-    public function getMedias(): Collection
-    {
-        return $this->medias;
-    }
-
-    public function setMedias(Collection $medias): void
-    {
-        $this->medias = $medias;
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->admin;
-    }
-
-    public function setAdmin(bool $admin): void
-    {
-        $this->admin = $admin;
-    }
-
-    // Add the getter and setter for the password field
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
     public function getPassword(): ?string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $password): static
     {
         $this->password = $password;
+
         return $this;
     }
 
-    public function getRoles(): array
-    {
-        return ['ROLE_USER'];
-    }
-
+    /**
+     * @see UserInterface
+     */
     public function eraseCredentials(): void
     {
-        //
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 }
