@@ -13,10 +13,32 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class GuestController extends AbstractController
 {
+
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    #[Route('admin/guest', name: 'admin_list_guest')]
+    public function guestList(EntityManagerInterface $entityManager)
+    {
+        $allGuests = $this->entityManager->getRepository(User::class)->findBy([
+            'admin' => false,
+        ]);
+
+        return $this->render('guests-list.html.twig', [
+            'guests' => $allGuests
+        ]);
+    }
+
     #[Route('admin/guest/add', name: 'admin_add_guest')]
     public function addGuest(HttpFoundationRequest $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher)
     {
         $user = new User();
+
+        $user->setRoles(['ROLE_USER']);
 
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
@@ -29,24 +51,44 @@ final class GuestController extends AbstractController
 
             return $this->redirectToRoute('guests');
         }
-        return $this->render('front/guest-add.html.twig', [
+        return $this->render('guests-list.html.twig', [
             'form' => $form->createView(),
         ]);
     }
 
-    #[Route('admin/guest/{id}', name: 'admin_access_guest')]
-    public function guestAccess(): Response
+    #[Route('admin/guest/{id}/toggle', name: 'admin_access_guest', methods: ['POST'])]
+    public function guestAccess(int $id): Response
     {
-        return $this->render('front/guest.html.twig', [
-            'controller_name' => 'GuestController',
-        ]);
+        $guest = $this->entityManager->getRepository(User::class)->find($id);
+
+        if (!$guest) {
+            throw $this->createNotFoundException('Utilisateur non trouvé');
+        }
+        $guest->setIsActive(!$guest->isActive());
+
+        $this->entityManager->flush();
+
+        $this->addFlash(
+            'success',
+            'Le statut de l\'invité a été mis à jour avec succès.'
+        );
+
+        return $this->redirectToRoute('admin_list_guest');
     }
 
-    #[Route('admin/guest/delete', name: 'admin_delete_guest')]
-    public function guestDelete(): Response
+    #[Route('admin/guest/delete/{id}', name: 'admin_delete_guest', methods: ['POST'])]
+    public function guestDelete(int $id): Response
     {
-        return $this->render('front/guest.html.twig', [
-            'controller_name' => 'GuestController',
-        ]);
+        $guest = $this->entityManager->getRepository(User::class)->find($id);
+        if (!$guest) {
+            $this->addFlash('error', 'Invité introuvable.');
+        }
+
+        $this->entityManager->remove($guest);
+        $this->entityManager->flush();
+
+        $this->addFlash('delete', 'Invité supprimé avec succès.');
+
+        return $this->redirectToRoute('admin_list_guest');
     }
 }
