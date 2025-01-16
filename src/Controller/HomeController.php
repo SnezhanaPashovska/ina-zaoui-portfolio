@@ -27,6 +27,7 @@ class HomeController extends AbstractController
     #[Route("/guests", name: "guests")]
     public function guests()
     {
+ 
         $guests = $this->entityManager->getRepository(User::class)->findBy(['admin' => false]);
         return $this->render('front/guests.html.twig', [
             'guests' => $guests

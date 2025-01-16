@@ -37,6 +37,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private ?string $username = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $isActive = true;
+
     /**
      * @var list<string> The user roles
      */
@@ -147,6 +150,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDescription(?string $description): void
     {
         $this->description = $description;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
     }
 
     public function getMedias(): Collection

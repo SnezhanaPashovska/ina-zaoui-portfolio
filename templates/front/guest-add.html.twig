@@ -1,0 +1,33 @@
+{% extends 'front.html.twig' %}
+{% block front %}
+	<div class="main-container">
+		<h1>Ajouter un invité</h1>
+		<div class="guest-form">
+			{{ form_start(form) }}
+			<div>
+				{{form_label(form.username)}}
+				{{form_widget(form.username)}}
+			</div>
+			<div>
+				{{form_label(form.name)}}
+				{{form_widget(form.name)}}
+			</div>
+			<div>
+				{{form_label(form.description)}}
+				{{form_widget(form.description)}}
+			</div>
+			<div>
+				{{form_label(form.email)}}
+				{{form_widget(form.email)}}
+			</div>
+			<div>
+				{{form_label(form.password)}}
+				{{form_widget(form.password)}}
+			</div>
+			<div>
+				<button type="submit" class="btn btn-primary">Créer l'invité</button>
+			</div>
+			{{ form_end(form) }}
+		</div>
+	</div>
+{% endblock %}
