@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Form\UserType;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
@@ -24,7 +25,7 @@ final class GuestController extends AbstractController
     #[Route('admin/guest', name: 'admin_list_guest')]
     public function guestList(EntityManagerInterface $entityManager)
     {
-        $allGuests = $this->entityManager->getRepository(User::class)->findBy([
+        $allGuests = $entityManager->getRepository(User::class)->findBy([
             'admin' => false,
         ]);
 
@@ -49,24 +50,28 @@ final class GuestController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            return $this->redirectToRoute('guests');
+            return $this->redirectToRoute('admin_list_guest');
         }
-        return $this->render('guests-list.html.twig', [
+
+        $allGuests = $entityManager->getRepository(User::class)->findBy(['admin' => false]);
+        return $this->render('front/guest-add.html.twig', [
             'form' => $form->createView(),
+            'guests' => $allGuests
         ]);
     }
 
     #[Route('admin/guest/{id}/toggle', name: 'admin_access_guest', methods: ['POST'])]
-    public function guestAccess(int $id): Response
+    public function guestAccess(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
     {
-        $guest = $this->entityManager->getRepository(User::class)->find($id);
+        $guest = $userRepository->find($id);
 
         if (!$guest) {
             throw $this->createNotFoundException('Utilisateur non trouvé');
         }
         $guest->setIsActive(!$guest->isActive());
 
-        $this->entityManager->flush();
+        $entityManager->persist($guest);
+        $entityManager->flush();
 
         $this->addFlash(
             'success',
@@ -77,15 +82,15 @@ final class GuestController extends AbstractController
     }
 
     #[Route('admin/guest/delete/{id}', name: 'admin_delete_guest', methods: ['POST'])]
-    public function guestDelete(int $id): Response
+    public function guestDelete(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
     {
-        $guest = $this->entityManager->getRepository(User::class)->find($id);
+        $guest = $userRepository->find($id);
         if (!$guest) {
             $this->addFlash('error', 'Invité introuvable.');
         }
 
-        $this->entityManager->remove($guest);
-        $this->entityManager->flush();
+        $entityManager->remove($guest);
+        $entityManager->flush();
 
         $this->addFlash('delete', 'Invité supprimé avec succès.');
 

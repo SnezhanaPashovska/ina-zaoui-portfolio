@@ -23,11 +23,11 @@ class MediaType extends AbstractType
                 'constraints' => [
                     new File([
                         'mimeTypes' => [
-                            'images/jpeg',
+                            'image/jpeg',
                             'image/png',
                             'image/gif',
                         ],
-                        'mimeTypeMessage' => 'Veuillez télécharger une image valide (jpeg, png, gif).',
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (jpeg, png, gif).',
                         'maxSize' => '2M',
                         'maxSizeMessage' => 'Le fichier est trop volumineux. La taille maximale autorisée est de 2 Mo.',
                     ]),
