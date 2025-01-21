@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Functional;
+namespace App\Tests\Controller\Functional;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,6 +37,7 @@ final class GuestControllerTest extends WebTestCase
         parent::setUp();
         $this->client = static::createClient();
     }
+    
     public function testGuestList(): void
     {
 

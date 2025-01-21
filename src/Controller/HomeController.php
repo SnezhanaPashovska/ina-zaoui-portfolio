@@ -38,8 +38,6 @@ class HomeController extends AbstractController
         ]);
     }
 
-
-
     #[Route("/guest/{id}", name: "guest")]
     public function guest(int $id)
     {
