@@ -57,8 +57,8 @@ class SecurityControllerTest extends WebTestCase
     ]);
 
     $client->submit($form);
-    $crawler = $client->followRedirect(); // Follow the redirect back to /login
+    $crawler = $client->followRedirect();
 
-    $this->assertSelectorExists('.alert.alert-danger'); // Check error message
+    $this->assertSelectorExists('.alert.alert-danger');
   }
 }
