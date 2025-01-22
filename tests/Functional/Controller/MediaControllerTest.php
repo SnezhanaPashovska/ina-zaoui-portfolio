@@ -62,6 +62,38 @@ class MediaControllerTest extends WebTestCase
     $this->assertResponseIsSuccessful();
   }
 
+
+  public function testAddImage(): void
+  {
+    $file = new UploadedFile(
+      sys_get_temp_dir() . '/test.jpg',
+      'test.jpg',
+      'image/jpeg',
+      null,
+      true
+    );
+
+    $crawler = $this->client->request('GET', '/admin/media/add');
+    $this->assertResponseIsSuccessful();
+
+    $this->client->request(
+      'POST',
+      '/admin/media/add',
+      [
+        'media[title]' => 'test.jpg',
+        'media[user]' => 1,
+        'media[album]' => 1,
+      ],
+      [
+        'media[file]' => $file
+      ],
+      ['CONTENT_TYPE' => 'multipart/form-data']
+    );
+
+    $this->assertResponseIsSuccessful();
+  }
+
+
   public function testDeleteMedia(): void
   {
     $entityManager = $this->client->getContainer()->get('doctrine')->getManager();

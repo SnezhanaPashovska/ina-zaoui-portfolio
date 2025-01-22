@@ -3,6 +3,8 @@ doctrine:
         url: '%env(resolve:DATABASE_URL)%'
         driver: 'pdo_pgsql'        
         charset: UTF8
+        options:
+            nest_transactions_with_savepoints: true
 
         # Set the identity generation strategy explicitly for PostgreSQL
         # configuration:
