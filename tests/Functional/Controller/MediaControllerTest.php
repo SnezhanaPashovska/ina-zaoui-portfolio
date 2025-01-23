@@ -8,51 +8,74 @@ use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\DataFixtures\AppFixturesTest;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class MediaControllerTest extends WebTestCase
 {
-  private KernelBrowser $client;
-
+  private $client;
 
   protected function setUp(): void
   {
+    parent::setUp();
+
     $this->client = static::createClient();
+
+    $this->clearMedia();
+    $this->clearUsers();
+
+    $this->loadFixtures(
+      $this->getContainer()->get(UserPasswordHasherInterface::class),
+      ['admin', 'guest', 'albums', 'media']
+    );
 
     $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
     $adminUser = $entityManager->getRepository(User::class)->findOneBy(['username' => 'ina_zaoui']);
-
-    if (!$adminUser) {
-      $adminUser = new User();
-      $adminUser->setName('Ina Zaoui');
-      $adminUser->setUsername('ina_zaoui');
-      $adminUser->setPassword('password');
-      $adminUser->setEmail('ina_zaoui@example.com');
-      $adminUser->setRoles(['ROLE_ADMIN']);
-      $entityManager->persist($adminUser);
-      $entityManager->flush();
-    }
     $this->client->loginUser($adminUser);
+  }
 
-    $album = $entityManager->getRepository(Album::class)->findOneBy(['name' => 'Divers']);
-    if (!$album) {
-      $album = new Album();
-      $album->setName('Divers');
-      $entityManager->persist($album);
-      $entityManager->flush();
+  private function clearMedia(): void
+  {
+    $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+    $medias = $entityManager->getRepository(Media::class)->findAll();
+
+    foreach ($medias as $media) {
+      $entityManager->remove($media);
+    }
+    $entityManager->flush();
+  }
+
+  private function clearUsers(): void
+  {
+    $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+    $users = $entityManager->getRepository(User::class)->findAll();
+
+    foreach ($users as $user) {
+      $entityManager->remove($user);
+    }
+    $entityManager->flush();
+  }
+
+  private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
+  {
+    $manager = self::getContainer()->get('doctrine')->getManager();
+
+    $fixture = new AppFixturesTest($passwordHasher, $tags);
+    $fixture->load($manager);
+
+    $manager->clear();
+  }
+
+  private function ensureTestMediaFileExists(): void
+  {
+    $testMediaDir = $this->getContainer()->getParameter('kernel.project_dir') . '/public/uploads/medias/';
+    if (!is_dir($testMediaDir)) {
+      mkdir($testMediaDir, 0777, true);
     }
 
-    $media = $entityManager->getRepository(Media::class)->findOneBy(['title' => 'Alpes']);
-    if (!$media) {
-      $tempFilePath = sys_get_temp_dir() . '/test.jpg';
-      file_put_contents($tempFilePath, 'Temporary file content');
-
-      $media = new Media();
-      $media->setTitle('Alpes');
-      $media->setPath($tempFilePath);
-      $media->setUser($adminUser);
-      $media->setAlbum($album);
-      $entityManager->persist($media);
-      $entityManager->flush();
+    $testMediaFile = $testMediaDir . 'test_media.jpg';
+    if (!file_exists($testMediaFile)) {
+      copy(__DIR__ . '/../../Files/test_media.jpg', $testMediaFile);
     }
   }
 
@@ -62,11 +85,14 @@ class MediaControllerTest extends WebTestCase
     $this->assertResponseIsSuccessful();
   }
 
-
   public function testAddImage(): void
   {
+    $tempFile = tmpfile();
+    $tempFilePath = stream_get_meta_data($tempFile)['uri'];
+    file_put_contents($tempFilePath, 'test content');
+
     $file = new UploadedFile(
-      sys_get_temp_dir() . '/test.jpg',
+      $tempFilePath,
       'test.jpg',
       'image/jpeg',
       null,
@@ -99,10 +125,11 @@ class MediaControllerTest extends WebTestCase
     $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
 
     $media = $entityManager->getRepository(Media::class)->findOneBy(['title' => 'Alpes']);
-
     $this->assertNotNull($media, 'No media found in the database.');
 
     $mediaId = $media->getId();
+
+    $this->ensureTestMediaFileExists();
 
     $this->client->request('GET', '/admin/media/delete/' . $mediaId);
 

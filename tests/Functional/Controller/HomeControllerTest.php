@@ -2,110 +2,101 @@
 
 namespace App\Tests\Controller\Functional;
 
+use App\DataFixtures\AppFixturesTest;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\Entity\User;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class HomeControllerTest extends WebTestCase
 {
+    private $client = null;
 
-  private function createUser()
-  {
-    $user = new User();
-    $user->setName('Test Guest');
-    $user->setUsername('Test Guest');
-    $user->setAdmin(false);
-    $user->setIsActive(true);
-    $user->setDescription('Test description');
-    $user->setEmail('testguest@example.com');
-    $user->setPassword('password123');
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->client = static::createClient();
 
-    $entityManager = self::getContainer()->get('doctrine')->getManager();
+        $this->clearUsers();
 
-    $entityManager->persist($user);
-    $entityManager->flush();
+        $this->loadFixtures(
+            $this->getContainer()->get('security.password_hasher'),
+            ['admin', 'guest']
+        );
+    }
 
-    return $user;
-  }
+    private function clearUsers(): void
+    {
+        $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+        $users = $entityManager->getRepository(User::class)->findAll();
 
-  private function createAdminUser()
-  {
-    $user = new User();
-    $user->setName('Ina Zaoui');
-    $user->setUsername('ina_zaoui');
-    $user->setPassword('password123');
-    $user->setIsActive(true);
-    $user->setDescription('Test description');
-    $user->setAdmin(true);
-    $user->setEmail('ina@zaoui.com');
-    $user->setRoles(['ROLE_ADMIN']);
+        foreach ($users as $user) {
+            $entityManager->remove($user);
+        }
+        $entityManager->flush();
+    }
 
-    $entityManager = self::getContainer()->get('doctrine')->getManager();
-    $entityManager->persist($user);
-    $entityManager->flush();
+    
+    private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
+    {
+        $manager = self::getContainer()->get('doctrine')->getManager();
 
-    return $user;
-  }
+        $fixture = new \App\DataFixtures\AppFixturesTest($passwordHasher, $tags);
 
-  public function testHomePageLoadsSuccessfully(): void
-  {
-    $client = static::createClient();
-    $client->request('GET', '/');
+        $fixture->load($manager);
+        $manager->flush();
+    }
 
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorExists('nav');
-  }
+    public function testHomePageLoadsSuccessfully(): void
+    {
+        $this->client->request('GET', '/');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('nav');
+    }
 
-  public function testGuestsPageLoadsSuccessfully(): void
-  {
-    $client = static::createClient();
-    $client->request('GET', '/guests');
+    public function testGuestsPageLoadsSuccessfully(): void
+    {
+        $this->client->request('GET', '/guests');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h3', 'Invités');
+    }
 
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorTextContains('h3', 'Invités');
-  }
+    public function testGuestPageWithValidId(): void
+    {
+        $entityManager = self::getContainer()->get('doctrine')->getManager();
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => 'guest@example.com']);
 
-  public function testGuestPageWithValidId(): void
-  {
-    $client = static::createClient();
+        if (!$user) {
+            $this->fail('User with email guest@example.com not found.');
+        }
 
-    $user = $this->createUser();
-    $client->request('GET', '/guest/' . $user->getId());
+        $this->client->request('GET', '/guest/' . $user->getId());
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('h3', $user->getName());
+    }
 
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorExists('h3', 'guest.name');
-  }
+    public function testPortfolioPageLoadsSuccessfully(): void
+    {
+        $this->client->request('GET', '/portfolio');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h3', 'Portfolio');
+    }
 
+    public function testAboutPageLoadsSuccessfully(): void
+    {
+        $this->client->request('GET', '/about');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h2', 'Qui suis-je ?');
+    }
 
-  public function testPortfolioPageLoadsSuccessfully(): void
-  {
-    $client = static::createClient();
-    $client->request('GET', '/portfolio');
+    public function testAdminPageLoadsSuccessfully(): void
+    {
+        $entityManager = self::getContainer()->get('doctrine')->getManager();
+        $adminUser = $entityManager->getRepository(User::class)->findOneBy(['email' => 'ina@zaoui.com']);
 
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorTextContains('h3', 'Portfolio');
-  }
+        $this->client->loginUser($adminUser);
 
-  public function testAboutPageLoadsSuccessfully(): void
-  {
-    $client = static::createClient();
-    $client->request('GET', '/about');
-
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorTextContains('h2', 'Qui suis-je ?');
-  }
-
-  public function testAdminPageLoadsSuccessfully(): void
-  {
-    $client = static::createClient();
-
-    $adminUser = $this->createAdminUser();
-
-    $client->loginUser($adminUser);
-
-    $client->request('GET', '/admin');
-
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorTextContains('h1', 'Admin');
-  }
+        $this->client->request('GET', '/admin');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Admin');
+    }
 }

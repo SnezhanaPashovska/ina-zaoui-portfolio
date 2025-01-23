@@ -28,8 +28,8 @@ class UserTest extends TestCase
     $user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
     $this->assertEquals(['ROLE_USER', 'ROLE_ADMIN'], $user->getRoles());
 
-    $user->setPassword('hashed_password');
-    $this->assertEquals('hashed_password', $user->getPassword());
+    $user->setPassword('$2y$04$IeNqTlzSlxK8rUvHsBklkuJzn6b9rW0JulJRvil/TKBHt9TxOnPIS');
+    $this->assertEquals('$2y$04$IeNqTlzSlxK8rUvHsBklkuJzn6b9rW0JulJRvil/TKBHt9TxOnPIS', $user->getPassword());
 
     $user->setIsActive(true);
     $this->assertTrue($user->isActive());
