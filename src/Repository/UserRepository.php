@@ -8,15 +8,29 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * @extends ServiceEntityRepository<User>
  */
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+
 {
-    public function __construct(ManagerRegistry $registry)
+    private EntityManagerInterface $entityManager;
+    public function __construct(ManagerRegistry $registry, EntityManagerInterface $entityManager)
     {
         parent::__construct($registry, User::class);
+        $this->entityManager = $entityManager;
+    }
+
+    public function save(User $user, bool $flush = true): void
+    {
+        $this->entityManager->persist($user);
+
+        if ($flush) {
+            $this->entityManager->flush();
+        }
     }
 
     /**
@@ -33,28 +47,36 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Fetch all admins.
+     * 
+     * @return User[] Returns an array of admin User objects
+     */
+    public function findAdmins(): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.admin = :admin')
+            ->setParameter('admin', true)
+            ->orderBy('u.name', 'ASC')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findActiveUsersPaginated(int $page, int $limit): Paginator
+    {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->where('u.admin = :admin')
+            ->setParameter('admin', false)
+            ->leftJoin('u.medias', 'm')
+            ->addSelect('m')
+            ->orderBy('u.name', 'ASC');
+
+        $query = $queryBuilder->getQuery();
+
+        $query->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return new Paginator($query, true);
+    }
 }

@@ -7,7 +7,7 @@ use App\Form\UserType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,27 +15,30 @@ use Symfony\Component\Routing\Attribute\Route;
 final class GuestController extends AbstractController
 {
 
-    private $entityManager;
+    private UserRepository $userRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(UserRepository $userRepository)
     {
-        $this->entityManager = $entityManager;
+        $this->userRepository = $userRepository;
     }
 
     #[Route('admin/guest', name: 'admin_list_guest')]
-    public function guestList(EntityManagerInterface $entityManager)
+    public function guestList(Request $request, UserRepository $userRepository)
     {
-        $allGuests = $entityManager->getRepository(User::class)->findBy([
-            'admin' => false,
-        ]);
+        $allGuests = $this->userRepository->findBy(['admin' => false]);
+        $page = (int) $request->query->get('page', 1); 
+        $limit = 5; 
+        $paginator = $userRepository->findActiveUsersPaginated($page, $limit);
 
         return $this->render('guests-list.html.twig', [
-            'guests' => $allGuests
+            'guests' => $paginator,  
+            'currentPage' => $page,
+            'totalPages' => ceil($paginator->count() / $limit),
         ]);
     }
 
     #[Route('admin/guest/add', name: 'admin_add_guest')]
-    public function addGuest(HttpFoundationRequest $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher)
+    public function addGuest(Request $request, UserPasswordHasherInterface $passwordHasher)
     {
         $user = new User();
 
@@ -47,14 +50,14 @@ final class GuestController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
             $user->setPassword($hashedPassword);
-            $entityManager->persist($user);
-            $entityManager->flush();
+
+            $this->userRepository->save($user);
 
             return $this->redirectToRoute('admin_list_guest');
         }
 
-        $allGuests = $entityManager->getRepository(User::class)->findBy(['admin' => false]);
-        return $this->render('front/guest-add.html.twig', [
+        $allGuests = $this->userRepository->findBy(['admin' => false]);
+        return $this->render('admin\guest-add.html.twig', [
             'form' => $form->createView(),
             'guests' => $allGuests
         ]);
@@ -68,9 +71,11 @@ final class GuestController extends AbstractController
         if (!$guest) {
             throw $this->createNotFoundException('Utilisateur non trouvé');
         }
+   
         $guest->setIsActive(!$guest->isActive());
 
         $entityManager->persist($guest);
+
         $entityManager->flush();
 
         $this->addFlash(
@@ -87,6 +92,7 @@ final class GuestController extends AbstractController
         $guest = $userRepository->find($id);
         if (!$guest) {
             $this->addFlash('error', 'Invité introuvable.');
+            return $this->redirectToRoute('admin_list_guest');
         }
 
         $entityManager->remove($guest);

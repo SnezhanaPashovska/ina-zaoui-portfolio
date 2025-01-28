@@ -21,28 +21,21 @@ class MediaRepository extends ServiceEntityRepository
         parent::__construct($registry, Media::class);
     }
 
-//    /**
-//     * @return Media[] Returns an array of Media objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('m.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Fetches media with related User and Album entities in a single query.
+     *
+     * @param int|null $userId Filter by user ID, or null to fetch all media.
+     * @return Media[] Returns an array of Media objects.
+     */
 
-//    public function findOneBySomeField($value): ?Media
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function findPaginatedMediaByUser(int $userId, int $page, int $limit): array
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->where('m.user = :userId')
+            ->setParameter('userId', $userId)
+            ->setFirstResult(($page - 1) * $limit) 
+            ->setMaxResults($limit); 
+
+        return $qb->getQuery()->getResult();
+    }
 }

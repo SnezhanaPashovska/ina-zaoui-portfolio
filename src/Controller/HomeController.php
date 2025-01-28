@@ -5,17 +5,22 @@ namespace App\Controller;
 use App\Entity\Album;
 use App\Entity\Media;
 use App\Entity\User;
+use App\Repository\MediaRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Request;
 
 class HomeController extends AbstractController
 {
     private $entityManager;
+    private $userRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
     {
         $this->entityManager = $entityManager;
+        $this->userRepository = $userRepository;
     }
 
     #[Route("/", name: "home")]
@@ -25,25 +30,34 @@ class HomeController extends AbstractController
     }
 
     #[Route("/guests", name: "guests")]
-    public function guests()
+    public function guests(Request $request, UserRepository $userRepository)
     {
-
-        $guests = $this->entityManager->getRepository(User::class)->findBy([
-            'admin' => false,
-            'isActive' => true
-        ]);
+        $page = (int) $request->query->get('page', 1);
+        $limit = 5;
+        $paginator = $userRepository->findActiveUsersPaginated($page, $limit);
 
         return $this->render('front/guests.html.twig', [
-            'guests' => $guests
+            'guests' => $paginator,
+            'currentPage' => $page,
+            'totalPages' => ceil($paginator->count() / $limit),
         ]);
     }
 
     #[Route("/guest/{id}", name: "guest")]
-    public function guest(int $id)
+    public function guest(int $id, Request $request, MediaRepository $mediaRepository)
     {
         $guest = $this->entityManager->getRepository(User::class)->find($id);
+        if (!$guest) {
+            throw $this->createNotFoundException('Guest not found.');
+        }
+        $page = $request->query->getInt('page', 1);
+        $limit = 5;
+
+        $images = $mediaRepository->findPaginatedMediaByUser($id, $page, $limit);
         return $this->render('front/guest.html.twig', [
-            'guest' => $guest
+            'guest' => $guest,
+            'images' => $images,
+            'currentPage' => $page,
         ]);
     }
 

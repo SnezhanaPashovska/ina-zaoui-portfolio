@@ -49,6 +49,11 @@ class AlbumController extends AbstractController
     public function update(Request $request, int $id)
     {
         $album = $this->entityManager->getRepository(Album::class)->find($id);
+
+        if (!$album) {
+            throw $this->createNotFoundException('Album not found');
+        }
+
         $form = $this->createForm(AlbumType::class, $album);
         $form->handleRequest($request);
 
@@ -65,8 +70,11 @@ class AlbumController extends AbstractController
     public function delete(int $id)
     {
         $album = $this->entityManager->getRepository(Album::class)->find($id);
-        $this->entityManager->remove($album);
-        $this->entityManager->flush();
+
+        if ($album) {
+            $this->entityManager->remove($album);
+            $this->entityManager->flush();
+        }
 
         return $this->redirectToRoute('admin_album_index');
     }

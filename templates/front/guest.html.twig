@@ -8,10 +8,20 @@
 			<div class="row">
 				{% for media in guest.medias %}
 					<div class="col-4 media mb-4">
-						<img class="w-100" src="{{ asset(media.path) }}" alt="{{ media.title }}">
+						<img class="w-100" src="{{ asset(media.path) }}" alt="{{ media.title }}" loading="lazy">
 					</div>
 				{% endfor %}
 			</div>
+
+			<!-- Pagination -->
+			{% if images|length > 5 %}
+				<div class="pagination mt-4">
+					{% if currentPage > 1 %}
+						<a href="{{ path('guest', { id: guest.id, page: currentPage - 1 }) }}" class="btn btn-primary">Précédent</a>
+					{% endif %}
+					<a href="{{ path('guest', { id: guest.id, page: currentPage + 1 }) }}" class="btn btn-primary">Suivant</a>
+				</div>
+			{% endif %}
 		</div>
 	</div>
 {% endblock %}
