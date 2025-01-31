@@ -30,12 +30,31 @@ class MediaRepository extends ServiceEntityRepository
 
     public function findPaginatedMediaByUser(int $userId, int $page, int $limit): array
     {
-        $qb = $this->createQueryBuilder('m')
+        return $this->createQueryBuilder('m')
+            ->innerJoin('m.user', 'u')  
+            ->leftJoin('m.album', 'a')  
             ->where('m.user = :userId')
             ->setParameter('userId', $userId)
-            ->setFirstResult(($page - 1) * $limit) 
-            ->setMaxResults($limit); 
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->addSelect('u', 'a') 
+            ->getQuery()
+            ->getResult();
+    }
 
-        return $qb->getQuery()->getResult();
+    public function findPaginatedMedia(int $page, int $limit, ?int $albumId = null)
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->innerJoin('m.user', 'u')
+            ->andWhere('u.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->orderBy('m.id', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        if ($albumId) {
+            $qb->andWhere('m.album = :albumId')
+                ->setParameter('albumId', $albumId);
+        }
     }
 }

@@ -4,7 +4,7 @@
 	<div class="row">
 		<div class="col-12">
 			<h3 class="mb-5">Invités</h3>
-			{% cache 'guests_list_' ~ currentPage %}
+			{% cache 'guests_list_' ~ currentPage ~ '_' ~ guests|length %}
 			<div class="guests d-flex flex-column">
 				{% for guest in guests %}
 					<div class="guest py-5 d-flex justify-content-between align-items-center">
@@ -31,5 +31,4 @@
 				{% endif %}
 			</div>
 		</div>
-	</div>
-{% endblock %}
+	{% endblock %}

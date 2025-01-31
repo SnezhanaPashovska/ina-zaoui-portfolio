@@ -6,9 +6,9 @@
 			<h3 class="mb-4">{{ guest.name }}</h3>
 			<p class="mb-5 w-100">{{ guest.description }}</p>
 			<div class="row">
-				{% for media in guest.medias %}
+				{% for media in images %}
 					<div class="col-4 media mb-4">
-						<img class="w-100" src="{{ asset(media.path) }}" alt="{{ media.title }}" loading="lazy">
+						<img class="w-100" src="{{ asset(media.path) }}" alt="{{ media.title }}">
 					</div>
 				{% endfor %}
 			</div>
