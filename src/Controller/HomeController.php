@@ -75,8 +75,6 @@ class HomeController extends AbstractController
     }
 
 
-
-
     #[Route("/portfolio/{id}", name: "portfolio")]
     public function portfolio(?int $id = null)
     {

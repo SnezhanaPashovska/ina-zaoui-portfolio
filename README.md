@@ -6,12 +6,17 @@ Le site permet à **Ina Zaoui**, une photographe, de gérer ses propres photos, 
 
 ---
 
+## 📌 Présentation
+
+Ce projet est une application Symfony permettant aux utilisateurs de gérer des albums et d'ajouter des médias (images, vidéos, etc.).
+
 ## 🚀 Prérequis
 
 - PHP 8.1 ou supérieur
 - Composer
 - PostgreSQL (ou une autre base de données de votre choix)
 - Symfony CLI pour exécuter l'application localement
+
 ---
 
 ## 🛠️ Installation
