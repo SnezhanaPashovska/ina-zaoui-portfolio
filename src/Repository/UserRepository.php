@@ -58,6 +58,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->orderBy('u.name', 'ASC')
             ->getQuery()
             ->getOneOrNullResult();
+
+        if ($admin instanceof User) {
+            return $admin;
+        }
+
+        return null;
     }
 
     /**

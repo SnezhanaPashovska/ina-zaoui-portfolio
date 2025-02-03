@@ -59,8 +59,6 @@ class MediaController extends AbstractController
             if (!$this->isGranted('ROLE_ADMIN')) {
                
                 $user = $this->getUser();
-                
-                
                 if ($user instanceof User) {
                     $media->setUser($user);
                 } else {
