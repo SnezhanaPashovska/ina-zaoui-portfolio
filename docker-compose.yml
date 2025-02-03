@@ -9,6 +9,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=winterborn
       - POSTGRES_USER=postgres
+      - POSTGRES_DB=ina_zaoui
 volumes:
   postgres_db:
     driver: local
