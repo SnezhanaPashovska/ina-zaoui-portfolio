@@ -6,12 +6,13 @@ use App\DataFixtures\AppFixturesTest;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 class HomeControllerTest extends WebTestCase
 {
-    private $client = null;
+    private KernelBrowser $client;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->client = static::createClient();
@@ -19,14 +20,14 @@ class HomeControllerTest extends WebTestCase
         $this->clearUsers();
 
         $this->loadFixtures(
-            $this->getContainer()->get('security.password_hasher'),
+            static::getContainer()->get(UserPasswordHasherInterface::class),
             ['admin', 'guest']
         );
     }
 
     private function clearUsers(): void
     {
-        $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+        $entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
         $users = $entityManager->getRepository(User::class)->findAll();
 
         foreach ($users as $user) {
@@ -35,68 +36,78 @@ class HomeControllerTest extends WebTestCase
         $entityManager->flush();
     }
 
-    
+
+    /**
+     * Load the fixtures for the test.
+     * 
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param array<string> $tags
+     */
     private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
     {
-        $manager = self::getContainer()->get('doctrine')->getManager();
+        $manager = static::getContainer()->get('doctrine')->getManager();
 
-        $fixture = new \App\DataFixtures\AppFixturesTest($passwordHasher, $tags);
-
+        $fixture = new AppFixturesTest($passwordHasher, $tags);
         $fixture->load($manager);
+
         $manager->flush();
     }
 
     public function testHomePageLoadsSuccessfully(): void
     {
         $this->client->request('GET', '/');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('nav');
+        static::assertResponseIsSuccessful();
+        static::assertSelectorExists('nav');
     }
 
     public function testGuestsPageLoadsSuccessfully(): void
     {
         $this->client->request('GET', '/guests');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h3', 'Invités');
+        static::assertResponseIsSuccessful();
+        static::assertSelectorTextContains('h3', 'Invités');
     }
 
     public function testGuestPageWithValidId(): void
     {
-        $entityManager = self::getContainer()->get('doctrine')->getManager();
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
         $user = $entityManager->getRepository(User::class)->findOneBy(['email' => 'guest@example.com']);
 
-        if (!$user) {
-            $this->fail('User with email guest@example.com not found.');
+        if ($user === null) {
+            static::fail('User with email guest@example.com not found.');
         }
 
         $this->client->request('GET', '/guest/' . $user->getId());
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('h3', $user->getName());
+        static::assertResponseIsSuccessful();
+        static::assertSelectorExists('h3', (string)$user->getName());
     }
 
     public function testPortfolioPageLoadsSuccessfully(): void
     {
         $this->client->request('GET', '/portfolio');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h3', 'Portfolio');
+        static::assertResponseIsSuccessful();
+        static::assertSelectorTextContains('h3', 'Portfolio');
     }
 
     public function testAboutPageLoadsSuccessfully(): void
     {
         $this->client->request('GET', '/about');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Qui suis-je ?');
+        static::assertResponseIsSuccessful();
+        static::assertSelectorTextContains('h2', 'Qui suis-je ?');
     }
 
     public function testAdminPageLoadsSuccessfully(): void
     {
-        $entityManager = self::getContainer()->get('doctrine')->getManager();
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
         $adminUser = $entityManager->getRepository(User::class)->findOneBy(['email' => 'ina@zaoui.com']);
+
+        if ($adminUser === null) {
+            throw new \Exception('Admin user not found.');
+        }
 
         $this->client->loginUser($adminUser);
 
         $this->client->request('GET', '/admin');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Admin');
+        static::assertResponseIsSuccessful();
+        static::assertSelectorTextContains('h1', 'Admin');
     }
 }

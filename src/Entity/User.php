@@ -29,14 +29,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description;
 
-    #[ORM\Column(length: 180, unique: true)]
-    private ?string $email = null;
+    #[ORM\Column(length: 180, unique: true, nullable: false)] // Ensure it's not nullable
+    private string $email;
 
+    /** @var Collection<int, Media> */
     #[ORM\OneToMany(targetEntity: Media::class, mappedBy: 'user')]
     private Collection $medias;
 
-    #[ORM\Column(length: 180)]
-    private ?string $username = null;
+    #[ORM\Column(length: 180, unique: true, nullable: false)] // Ensure it's not nullable
+    private string $username;
 
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
@@ -51,8 +52,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
 
-    #[ORM\Column(type: 'string')]
-    private ?string $password = null;
+    #[ORM\Column(type: 'string', nullable: false)] // Ensure it's not nullable
+    private string $password;
 
 
     public function __construct()
@@ -65,7 +66,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getUsername(): ?string
+    public function getUsername(): string
     {
         return $this->username;
     }
@@ -90,25 +91,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * A visual identifier that represents this user.
      *
-     * @see UserInterface
+     * @return non-empty-string
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->username;
+        return $this->username;  // Ensure non-empty string is always returned
     }
 
     /**
-     * @see UserInterface
-     *
-     * @return list<string>
+     * @return list<string> The roles assigned to the user.
      */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
+        $roles[] = 'ROLE_USER';  // Ensure the user always has ROLE_USER
+        return array_values(array_unique($roles));  // Ensures that it's a proper list
     }
 
     /**
@@ -165,11 +162,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /** @return Collection<int, Media> */
     public function getMedias(): Collection
     {
         return $this->medias;
     }
 
+    /**
+     * @param Collection<int, Media> $medias
+     */
     public function setMedias(Collection $medias): void
     {
         $this->medias = $medias;

@@ -14,19 +14,25 @@ class UserRepositoryTest extends KernelTestCase
 {
   private EntityManagerInterface $entityManager;
   private UserRepository $userRepository;
-  private $client = null;
 
   public function setUp(): void
   {
     parent::setUp();
 
-    $this->entityManager = self::getContainer()->get('doctrine')->getManager();
+    $entityManager = self::getContainer()->get('doctrine')->getManager();
+
+    
+    if (!$entityManager instanceof EntityManagerInterface) {
+      throw new \RuntimeException('Entity manager is not an instance of EntityManagerInterface');
+    }
+
+    $this->entityManager = $entityManager;
     $this->userRepository = self::getContainer()->get(UserRepository::class);
 
     $this->clearUsers();
 
     $this->loadFixtures(
-      self::getContainer()->get('security.password_hasher'),
+      self::getContainer()->get(UserPasswordHasherInterface::class),
       ['admin', 'guest']
     );
   }
@@ -41,7 +47,13 @@ class UserRepositoryTest extends KernelTestCase
     $this->entityManager->flush();
   }
 
-  private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
+  /**
+   * Load the fixtures for the test.
+   * 
+   * @param UserPasswordHasherInterface $passwordHasher
+   * @param array<string> $tags
+   */
+  private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags = []): void
   {
     $manager = self::getContainer()->get('doctrine')->getManager();
 
@@ -53,34 +65,33 @@ class UserRepositoryTest extends KernelTestCase
 
   public function testUpgradePassword(): void
   {
-    $this->clearUsers(); 
+    $this->clearUsers();
 
     $this->loadFixtures(
-      self::getContainer()->get('security.password_hasher'),
-      ['admin', 'guest'] 
+      self::getContainer()->get(UserPasswordHasherInterface::class),
+      ['admin', 'guest']
     );
 
     $user = $this->userRepository->findOneBy(['email' => 'guest@example.com']);
 
-    $this->assertNotNull($user, "User not found in database");
+    static::assertNotNull($user, "User not found in database");
 
     $newPassword = '$2y$04$IeNqTlzSlxK8rUvHsBklkuJzn6b9rW0JulJRvil/TKBHt9TxOnPIS';
     $this->userRepository->upgradePassword($user, $newPassword);
 
     $this->entityManager->refresh($user);
 
-    $this->assertEquals($newPassword, $user->getPassword());
+    static::assertEquals($newPassword, $user->getPassword());
   }
 
-  public function testFindAdmins()
+  public function testFindAdmins(): void
   {
     $this->clearUsers();
     $this->loadFixtures(
-      self::getContainer()->get('security.password_hasher'),
+      self::getContainer()->get(UserPasswordHasherInterface::class),
       ['admin']
     );
     $admins = $this->userRepository->findAdmins();
-    $this->assertNotNull($admins);
+    static::assertNotNull($admins);
   }
-
 }

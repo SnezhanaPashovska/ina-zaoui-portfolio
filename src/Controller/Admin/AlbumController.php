@@ -10,10 +10,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 class AlbumController extends AbstractController
 {
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -21,7 +22,7 @@ class AlbumController extends AbstractController
     }
 
     #[Route("/admin/album", name: "admin_album_index")]
-    public function index()
+    public function index(): Response
     {
         $albums = $this->entityManager->getRepository(Album::class)->findAll();
 
@@ -29,7 +30,7 @@ class AlbumController extends AbstractController
     }
 
     #[Route("/admin/album/add", name: "admin_album_add")]
-    public function add(Request $request)
+    public function add(Request $request): Response
     {
         $album = new Album();
         $form = $this->createForm(AlbumType::class, $album);
@@ -46,11 +47,11 @@ class AlbumController extends AbstractController
     }
 
     #[Route("/admin/album/update/{id}", name: "admin_album_update")]
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $id): Response
     {
         $album = $this->entityManager->getRepository(Album::class)->find($id);
 
-        if (!$album) {
+        if ($album === null) {
             throw $this->createNotFoundException('Album not found');
         }
 
@@ -67,11 +68,11 @@ class AlbumController extends AbstractController
     }
 
     #[Route("/admin/album/delete/{id}", name: "admin_album_delete")]
-    public function delete(int $id)
+    public function delete(int $id): Response
     {
         $album = $this->entityManager->getRepository(Album::class)->find($id);
 
-        if ($album) {
+        if ($album !== null) {
             $this->entityManager->remove($album);
             $this->entityManager->flush();
         }

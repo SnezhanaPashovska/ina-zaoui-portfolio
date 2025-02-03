@@ -4,6 +4,7 @@ namespace App\Tests\Controller\Functional;
 
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use App\DataFixtures\AppFixturesTest;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -11,7 +12,7 @@ use App\Entity\Album;
 
 class AlbumControllerTest extends WebTestCase
 {
-    private $client;
+    private KernelBrowser $client;
 
     protected function setUp(): void
     {
@@ -22,18 +23,23 @@ class AlbumControllerTest extends WebTestCase
         $this->clearUsers();
 
         $this->loadFixtures(
-            $this->getContainer()->get(UserPasswordHasherInterface::class),
+            static::getContainer()->get(UserPasswordHasherInterface::class),
             ['admin', 'albums']
         );
 
-        $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
         $adminUser = $entityManager->getRepository(User::class)->findOneBy(['username' => 'ina_zaoui']);
+
+        if ($adminUser === null) {
+            throw new \Exception('Admin user not found');
+        }
+
         $this->client->loginUser($adminUser);
     }
 
     private function clearUsers(): void
     {
-        $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+        $entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
         $users = $entityManager->getRepository(User::class)->findAll();
 
         foreach ($users as $user) {
@@ -42,9 +48,16 @@ class AlbumControllerTest extends WebTestCase
         $entityManager->flush();
     }
 
+    /**
+     * Load the fixtures for the test.
+     * 
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param array<string> $tags
+     */
+
     private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
     {
-        $manager = self::getContainer()->get('doctrine')->getManager();
+        $manager = static::getContainer()->get('doctrine')->getManager();
 
         $fixture = new AppFixturesTest($passwordHasher, $tags);
         $fixture->load($manager);
@@ -56,23 +69,23 @@ class AlbumControllerTest extends WebTestCase
     {
         $this->client->request('GET', '/admin/album');
 
-        $this->assertResponseIsSuccessful();
+        static::assertResponseIsSuccessful();
     }
 
     public function testAdminCanAddAlbum(): void
     {
         $crawler = $this->client->request('GET', '/admin/album/add');
-        $this->assertResponseIsSuccessful();
+        static::assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Ajouter')->form([
             'album[name]' => 'New Test Album',
         ]);
         $this->client->submit($form);
 
-        $this->assertResponseRedirects('/admin/album');
+        static::assertResponseRedirects('/admin/album');
         $this->client->followRedirect();
 
-        $this->assertSelectorTextContains('h1', 'Admin');
+        static::assertSelectorTextContains('h1', 'Admin');
     }
 
     public function testAdminCanUpdateAlbum(): void
@@ -80,19 +93,21 @@ class AlbumControllerTest extends WebTestCase
         $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
 
         $album = $entityManager->getRepository(Album::class)->findOneBy(['name' => 'Nature']);
+        static::assertNotNull($album, 'No album found in the database.');
 
         $crawler = $this->client->request('GET', '/admin/album/update/' . $album->getId());
-        $this->assertResponseIsSuccessful();
+        static::assertResponseIsSuccessful();
 
         $form = $crawler->selectButton('Modifier')->form([
             'album[name]' => 'Updated Album Name',
         ]);
         $this->client->submit($form);
 
-        $this->assertResponseRedirects('/admin/album');
+        static::assertResponseRedirects('/admin/album');
 
         $updatedAlbum = $entityManager->getRepository(Album::class)->find($album->getId());
-        $this->assertSame('Updated Album Name', $updatedAlbum->getName());
+        static::assertNotNull($updatedAlbum, 'Updated album not found in the database.');
+        static::assertSame('Updated Album Name', $updatedAlbum->getName());
     }
 
     public function testAdminCanDeleteAlbum(): void
@@ -100,16 +115,15 @@ class AlbumControllerTest extends WebTestCase
         $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
 
         $album = $entityManager->getRepository(Album::class)->findOneBy(['name' => 'Nature']);
-
-        $this->assertNotNull($album, 'No album found in the database.');
+        static::assertNotNull($album, 'No album found in the database.');
 
         $albumId = $album->getId();
 
         $this->client->request('GET', '/admin/album/delete/' . $albumId);
 
-        $this->assertResponseRedirects('/admin/album');
+        static::assertResponseRedirects('/admin/album');
 
         $deletedAlbum = $entityManager->getRepository(Album::class)->find($albumId);
-        $this->assertNull($deletedAlbum);
+        static::assertNull($deletedAlbum);
     }
 }

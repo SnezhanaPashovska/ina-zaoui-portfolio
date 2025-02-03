@@ -13,11 +13,12 @@ use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * @extends ServiceEntityRepository<User>
+ * @implements PasswordUpgraderInterface<User>
  */
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
-
 {
     private EntityManagerInterface $entityManager;
+
     public function __construct(ManagerRegistry $registry, EntityManagerInterface $entityManager)
     {
         parent::__construct($registry, User::class);
@@ -38,19 +39,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
-        if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
-
+        // No need for instanceof check as the type is guaranteed by the type hint
         $user->setPassword($newHashedPassword);
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
     }
 
     /**
      * Fetch all admins.
      * 
-     * @return User[] Returns an array of admin User objects
+     * @return User|null Returns an admin User object or null
      */
     public function findAdmins(): ?User
     {
@@ -59,10 +57,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('admin', true)
             ->orderBy('u.name', 'ASC')
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
     }
 
+    /**
+     * Fetch paginated active users.
+     * 
+     * @param int $page
+     * @param int $limit
+     * @return Paginator<User>
+     */
     public function findActiveUsersPaginated(int $page, int $limit): Paginator
     {
         $queryBuilder = $this->createQueryBuilder('u')
@@ -79,5 +83,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setMaxResults($limit);
 
         return new Paginator($query, true);
+    }
+
+    /**
+     * Fetch paginated users.
+     * 
+     * @param int $page
+     * @param int $limit
+     * @return Paginator<User>
+     */
+    public function findAllPaginated(int $page, int $limit): Paginator
+    {
+        $query = $this->createQueryBuilder('u')
+            ->where('u.admin = false')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        return new Paginator($query);
     }
 }

@@ -2,7 +2,7 @@
 <html lang="en">
  <head>
   <meta charset="UTF-8">
-  <title>Dashboard for C:\xampp\htdocs\ina-zaoui\src\DataFixtures</title>
+  <title>Dashboard for C:\xampp\htdocs\ina-zaoui\src\Service</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="../_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
   <link href="../_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
@@ -17,7 +17,7 @@
       <nav aria-label="breadcrumb">
        <ol class="breadcrumb">
          <li class="breadcrumb-item"><a href="../index.html">C:\xampp\htdocs\ina-zaoui\src</a></li>
-         <li class="breadcrumb-item"><a href="index.html">DataFixtures</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Service</a></li>
          <li class="breadcrumb-item active">(Dashboard)</li>
 
        </ol>
@@ -155,7 +155,7 @@ $(document).ready(function() {
       .yAxis.tickFormat(d3.format('d'));
 
     d3.select('#classCoverageDistribution svg')
-      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,2], "Class Coverage"))
+      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,1], "Class Coverage"))
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -173,7 +173,7 @@ $(document).ready(function() {
       .yAxis.tickFormat(d3.format('d'));
 
     d3.select('#methodCoverageDistribution svg')
-      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,3], "Method Coverage"))
+      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,2], "Method Coverage"))
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -223,7 +223,7 @@ $(document).ready(function() {
     chart.yAxis.axisLabel('Cyclomatic Complexity');
 
     d3.select('#classComplexity svg')
-      .datum(getComplexityData([[100,1,"<a href=\"AlbumFixtures.php.html#9\">App\\DataFixtures\\AlbumFixtures<\/a>"],[100,2,"<a href=\"UserFixtures.php.html#10\">App\\DataFixtures\\UserFixtures<\/a>"]], 'Class Complexity'))
+      .datum(getComplexityData([[100,2,"<a href=\"AuthenticationService.php.html#7\">App\\Service\\AuthenticationService<\/a>"]], 'Class Complexity'))
       .transition()
       .duration(500)
       .call(chart);
@@ -247,7 +247,7 @@ $(document).ready(function() {
     chart.yAxis.axisLabel('Method Complexity');
 
     d3.select('#methodComplexity svg')
-      .datum(getComplexityData([[100,1,"<a href=\"AlbumFixtures.php.html#11\">App\\DataFixtures\\AlbumFixtures::load<\/a>"],[100,1,"<a href=\"UserFixtures.php.html#14\">App\\DataFixtures\\UserFixtures::__construct<\/a>"],[100,1,"<a href=\"UserFixtures.php.html#18\">App\\DataFixtures\\UserFixtures::load<\/a>"]], 'Method Complexity'))
+      .datum(getComplexityData([[100,1,"<a href=\"AuthenticationService.php.html#11\">App\\Service\\AuthenticationService::__construct<\/a>"],[100,1,"<a href=\"AuthenticationService.php.html#18\">App\\Service\\AuthenticationService::getAuthenticationData<\/a>"]], 'Method Complexity'))
       .transition()
       .duration(500)
       .call(chart);

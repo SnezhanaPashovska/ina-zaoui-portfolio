@@ -23,22 +23,33 @@ final class GuestController extends AbstractController
     }
 
     #[Route('admin/guest', name: 'admin_list_guest')]
-    public function guestList(Request $request, UserRepository $userRepository)
+    public function guestList(Request $request, UserRepository $userRepository): Response
     {
-        $allGuests = $this->userRepository->findBy(['admin' => false]);
-        $page = (int) $request->query->get('page', 1); 
-        $limit = 5; 
-        $paginator = $userRepository->findActiveUsersPaginated($page, $limit);
+
+        $page = (int) $request->query->get('page', '1');
+
+        $limit = 5;
+
+        $user = $this->getUser();
+        $isAdmin = $user !== null && in_array('ROLE_ADMIN', $user->getRoles(), true);
+
+        
+        if ($isAdmin) {
+            $paginator = $userRepository->findAllPaginated($page, $limit); 
+        } else {
+            
+            $paginator = $userRepository->findActiveUsersPaginated($page, $limit);
+        }
 
         return $this->render('guests-list.html.twig', [
-            'guests' => $paginator,  
+            'guests' => $paginator,
             'currentPage' => $page,
             'totalPages' => ceil($paginator->count() / $limit),
         ]);
     }
 
     #[Route('admin/guest/add', name: 'admin_add_guest')]
-    public function addGuest(Request $request, UserPasswordHasherInterface $passwordHasher)
+    public function addGuest(Request $request, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
 
@@ -48,7 +59,8 @@ final class GuestController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
+            $plainPassword = $user->getPassword() ?? '';
+            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
 
             $this->userRepository->save($user);
@@ -68,10 +80,10 @@ final class GuestController extends AbstractController
     {
         $guest = $userRepository->find($id);
 
-        if (!$guest) {
+        if ($guest === null) {
             throw $this->createNotFoundException('Utilisateur non trouvé');
         }
-   
+
         $guest->setIsActive(!$guest->isActive());
 
         $entityManager->persist($guest);
@@ -90,7 +102,7 @@ final class GuestController extends AbstractController
     public function guestDelete(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
     {
         $guest = $userRepository->find($id);
-        if (!$guest) {
+        if ($guest === null) {
             $this->addFlash('error', 'Invité introuvable.');
             return $this->redirectToRoute('admin_list_guest');
         }

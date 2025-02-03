@@ -12,8 +12,16 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class AppFixturesTest extends Fixture
 {
-  private $passwordHasher;
+  private UserPasswordHasherInterface $passwordHasher;
+  /**
+   * @var array<string>
+   */
   private array $tags;
+
+  /**
+   * @param UserPasswordHasherInterface $passwordHasher
+   * @param array<string> $tags
+   */
 
   public function __construct(UserPasswordHasherInterface $passwordHasher, array $tags)
   {
@@ -29,7 +37,7 @@ class AppFixturesTest extends Fixture
   public function load(ObjectManager $manager): void
   {
     // Admin user fixture
-    if (empty($this->tags) || in_array('admin', $this->tags)) {
+    if (count($this->tags) === 0 || in_array('admin', $this->tags, true)) {
       $admin = new User();
       $admin->setName('Ina Zaoui');
       $admin->setUsername('ina_zaoui');
@@ -44,7 +52,8 @@ class AppFixturesTest extends Fixture
     }
 
     // Guest user fixture
-    if (empty($this->tags) || in_array('guest', $this->tags)) {
+    $guest = null;
+    if (count($this->tags) === 0 || in_array('guest', $this->tags, true)) {
       $guest = new User();
       $guest->setUsername('guestUser');
       $guest->setName('Guest User');
@@ -59,14 +68,19 @@ class AppFixturesTest extends Fixture
     }
 
     // Album fixture
-    if (empty($this->tags) || in_array('albums', $this->tags)) {
+    $album1 = null;
+    if (count($this->tags) === 0 || in_array('albums', $this->tags, true)) {
       $album1 = new Album();
       $album1->setName('Nature');
       $manager->persist($album1);
     }
 
-    //Media fixture
-    if (empty($this->tags) || in_array('media', $this->tags)) {
+    // Media fixture
+    if (count($this->tags) === 0 || in_array('media', $this->tags, true)) {
+      if ($guest === null || $album1 === null) {
+        throw new \Exception('Guest user and album must be created before adding media.');
+      }
+
       $media = new Media();
       $media->setUser($guest);
       $media->setAlbum($album1);

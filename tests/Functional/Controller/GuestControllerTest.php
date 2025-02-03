@@ -13,7 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class GuestControllerTest extends WebTestCase
 {
-    private $client = null;
+    private KernelBrowser $client;
 
     public function setUp(): void
     {
@@ -22,14 +22,14 @@ final class GuestControllerTest extends WebTestCase
 
         $this->clearUsers();
         $this->loadFixtures(
-            $this->getContainer()->get('security.password_hasher'),
+            static::getContainer()->get('security.password_hasher'),
             ['admin', 'guest']
         );
     }
-    
+
     private function clearUsers(): void
     {
-        $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+        $entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
         $users = $entityManager->getRepository(User::class)->findAll();
 
         foreach ($users as $user) {
@@ -38,13 +38,19 @@ final class GuestControllerTest extends WebTestCase
         $entityManager->flush();
     }
 
+    /**
+     * Load the fixtures for the test.
+     * 
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param array<string> $tags
+     */
     private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
     {
-        $manager = self::getContainer()->get('doctrine')->getManager();
+        $manager = static::getContainer()->get('doctrine')->getManager();
 
         $fixture = new \App\DataFixtures\AppFixturesTest($passwordHasher, $tags);
-
         $fixture->load($manager);
+
         $manager->flush();
     }
 
@@ -52,7 +58,7 @@ final class GuestControllerTest extends WebTestCase
     {
         $this->clearUsers();
         $this->loadFixtures(
-            $this->getContainer()->get('security.password_hasher'),
+            static::getContainer()->get('security.password_hasher'),
             ['admin', 'guest']
         );
 
@@ -62,26 +68,37 @@ final class GuestControllerTest extends WebTestCase
             '_password' => 'guestpassword'
         ]);
 
-        self::assertResponseRedirects('/');
+        static::assertResponseRedirects('/');
         $this->client->followRedirect();
 
         $crawler = $this->client->request('GET', '/admin/guest');
-        self::assertResponseIsSuccessful();
-        self::assertGreaterThan(0, $crawler->filter('.guest')->count());
+        static::assertResponseStatusCodeSame(403);  
+        
+        $crawler = $this->client->request('GET', '/login');
+        $this->client->submitForm('Connexion', [
+            '_username' => 'ina_zaoui',
+            '_password' => 'password123'
+        ]);
+
+        $this->client->followRedirect();
+
+        $crawler = $this->client->request('GET', '/admin/guest');
+        static::assertResponseIsSuccessful();
+        static::assertGreaterThan(0, $crawler->filter('tr')->count());
     }
 
     public function testAddGuest(): void
     {
         $adminUsername = 'ina_zaoui';
-        $admin = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $admin = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->findOneBy(['username' => $adminUsername]);
 
-        $this->client->loginUser($admin);
-
-        if (!$admin) {
+        if ($admin === null) {
             throw new \Exception("Admin user '{$adminUsername}' not found.");
         }
+
+        $this->client->loginUser($admin);
 
         $uniqueUsername = 'NewGuest_' . uniqid();
         $uniqueEmail = uniqid('newguest_', true) . '@guest.com';
@@ -96,66 +113,78 @@ final class GuestControllerTest extends WebTestCase
         ]);
 
         $this->client->followRedirect();
-        self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Admin');
+        static::assertResponseIsSuccessful();
+        static::assertSelectorTextContains('h1', 'Admin');
 
-        $guest = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $guest = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->findOneBy(['email' => $uniqueEmail]);
 
-        self::assertNotNull($guest);
+        static::assertNotNull($guest);
     }
 
     public function testGuestAccessToggle(): void
     {
         $adminUsername = 'ina_zaoui';
-        $admin = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $admin = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->findOneBy(['username' => $adminUsername]);
+
+        if ($admin === null) {
+            throw new \Exception("Admin user '{$adminUsername}' not found.");
+        }
 
         $this->client->loginUser($admin);
 
         $guestUsername = 'guestUser';
-        $guest = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $guest = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->findOneBy(['username' => $guestUsername]);
 
-        self::assertNotNull($guest, 'Guest user not found in the database.');
-        self::assertTrue($guest->isActive(), 'Guest should initially be active.');
+        static::assertNotNull($guest, 'Guest user not found in the database.');
+        static::assertTrue($guest->isActive(), 'Guest should initially be active.');
 
         $this->client->request('POST', "/admin/guest/{$guest->getId()}/toggle");
-        self::assertResponseStatusCodeSame(302);
+        static::assertResponseStatusCodeSame(302);
 
-        $guest = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $guest = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->find($guest->getId());
-        self::assertFalse($guest->isActive(), 'Guest should now be inactive.');
+
+        static::assertNotNull($guest, 'Guest user not found after toggling.');
+        static::assertFalse($guest->isActive(), 'Guest should now be inactive.');
     }
 
     public function testDeleteGuest(): void
     {
         $adminUsername = 'ina_zaoui';
-        $admin = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $admin = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->findOneBy(['username' => $adminUsername]);
+
+        if ($admin === null) {
+            throw new \Exception("Admin user '{$adminUsername}' not found.");
+        }
+
         $this->client->loginUser($admin);
 
         $guestUsername = 'guestUser';
-        $guest = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $guest = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->findOneBy(['username' => $guestUsername]);
-        self::assertNotNull($guest, 'Guest user not found in the database.');
+
+        static::assertNotNull($guest, 'Guest user not found in the database.');
 
         $guestId = $guest->getId();
 
         $this->client->request('POST', '/admin/guest/delete/' . $guestId);
-        self::assertResponseRedirects('/admin/guest');
+        static::assertResponseRedirects('/admin/guest');
 
-        $this->getContainer()->get('doctrine.orm.entity_manager')->clear();
+        static::getContainer()->get('doctrine.orm.entity_manager')->clear();
 
-        $deletedGuest = $this->getContainer()->get('doctrine.orm.entity_manager')
+        $deletedGuest = static::getContainer()->get('doctrine.orm.entity_manager')
             ->getRepository(User::class)
             ->find($guestId);
-        self::assertNull($deletedGuest, 'Guest user was not deleted.');
+        static::assertNull($deletedGuest, 'Guest user was not deleted.');
     }
 }

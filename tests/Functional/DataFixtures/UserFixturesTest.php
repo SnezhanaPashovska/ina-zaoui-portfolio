@@ -8,17 +8,25 @@ use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 
 class UserFixturesTest extends WebTestCase
 {
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $client = static::createClient();
-        $this->entityManager = $client->getContainer()->get('doctrine')->getManager();
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        
+        if (!$entityManager instanceof EntityManagerInterface) {
+            throw new \RuntimeException('Entity manager is not an instance of EntityManagerInterface');
+        }
+
+        $this->entityManager = $entityManager;
         $this->loadFixtures();
     }
 
@@ -26,7 +34,7 @@ class UserFixturesTest extends WebTestCase
     {
         $loader = new Loader();
 
-        $loader->addFixture($this->getContainer()->get(UserFixtures::class));
+        $loader->addFixture(static::getContainer()->get(UserFixtures::class));
 
         $purger = new ORMPurger($this->entityManager);
         $executor = new ORMExecutor($this->entityManager, $purger);
@@ -36,16 +44,14 @@ class UserFixturesTest extends WebTestCase
     public function testUserFixtures(): void
     {
         $userCount = $this->entityManager->getRepository(User::class)->count([]);
-        $this->assertGreaterThan(0, $userCount, 'No users found after fixture load.');
+        static::assertGreaterThan(0, $userCount, 'No users found after fixture load.');
     }
-
     protected function tearDown(): void
     {
         parent::tearDown();
 
-        if ($this->entityManager) {
+        if ($this->entityManager->isOpen()) {
             $this->entityManager->close();
-            $this->entityManager = null;
         }
     }
 }

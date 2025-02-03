@@ -11,24 +11,24 @@ use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use App\Service\AuthenticationService;
 
 
 class HomeController extends AbstractController
 {
-    private $entityManager;
-    private $userRepository;
-    private $authService;
+    private EntityManagerInterface $entityManager;
+    private AuthenticationService $authService;
 
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository, AuthenticationService $authService)
+    public function __construct(EntityManagerInterface $entityManager, AuthenticationService $authService)
     {
         $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
         $this->authService = $authService;
     }
 
     #[Route("/", name: "home")]
-    public function home()
+    public function home(): Response
+
     {
         $authenticationData = $this->authService->getAuthenticationData();
 
@@ -36,9 +36,10 @@ class HomeController extends AbstractController
     }
 
     #[Route("/guests", name: "guests")]
-    public function guests(Request $request, UserRepository $userRepository)
+    public function guests(Request $request, UserRepository $userRepository): Response
+
     {
-        $page = max(1, (int) $request->query->get('page', 1));
+        $page = max(1, (int) $request->query->get('page', '1'));
         $limit = 5;
 
         $paginator = $userRepository->findActiveUsersPaginated($page, $limit);
@@ -46,17 +47,18 @@ class HomeController extends AbstractController
         $authenticationData = $this->authService->getAuthenticationData();
 
         return $this->render('front/guests.html.twig', array_merge([
-            'guests' => $paginator, 
+            'guests' => $paginator,
             'currentPage' => $page,
-            'totalPages' => ceil(count($paginator) / $limit), 
+            'totalPages' => ceil(count($paginator) / $limit),
         ], $authenticationData));
     }
 
     #[Route("/guest/{id}", name: "guest")]
-    public function guest(int $id, Request $request, MediaRepository $mediaRepository)
+    public function guest(int $id, Request $request, MediaRepository $mediaRepository): Response
+
     {
         $guest = $this->entityManager->getRepository(User::class)->find($id);
-        if (!$guest) {
+        if ($guest === null) {
             throw $this->createNotFoundException('Guest not found.');
         }
 
@@ -76,20 +78,22 @@ class HomeController extends AbstractController
 
 
     #[Route("/portfolio/{id}", name: "portfolio")]
-    public function portfolio(?int $id = null)
+    public function portfolio(?int $id = null): Response
+
     {
 
         $albums = $this->entityManager->getRepository(Album::class)->findAll();
-        $album = $id ? $this->entityManager->getRepository(Album::class)->find($id) : null;
+        $album = $id !== null ? $this->entityManager->getRepository(Album::class)->find($id) : null;
 
-        if ($album) {
+        if ($album !== null) {
             $medias = $this->entityManager->getRepository(Media::class)->findByAlbum($album);
         } else {
             $medias = $this->entityManager->getRepository(Media::class)->findAll();
         }
 
         $medias = array_filter($medias, function ($media) {
-            return $media->getUser()->isActive(); // Only keep media for active users
+            $user = $media->getUser();
+            return $user !== null && $user->isActive(); // Only keep media for active users
         });
 
 
@@ -103,14 +107,16 @@ class HomeController extends AbstractController
     }
 
     #[Route("/about", name: "about")]
-    public function about()
+    public function about(): Response
+
     {
         $authenticationData = $this->authService->getAuthenticationData();
         return $this->render('front/about.html.twig', $authenticationData);
     }
 
     #[Route('/admin', name: 'admin')]
-    public function admin()
+    public function admin(): Response
+
     {
         return $this->render('admin.html.twig');
     }

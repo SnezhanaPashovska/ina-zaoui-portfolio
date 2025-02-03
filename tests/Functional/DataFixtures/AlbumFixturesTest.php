@@ -4,6 +4,7 @@ namespace App\Tests\DataFixtures;
 
 use App\DataFixtures\AlbumFixtures;
 use App\Entity\Album;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
@@ -11,14 +12,20 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class AlbumFixturesTest extends WebTestCase
 {
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $client = static::createClient();
-        $this->entityManager = $client->getContainer()->get('doctrine')->getManager();
+        $entityManager = $client->getContainer()->get('doctrine')->getManager();
+
+        if (!$entityManager instanceof EntityManagerInterface) {
+            throw new \RuntimeException('Entity manager is not an instance of EntityManagerInterface');
+        }
+
+        $this->entityManager = $entityManager;
 
         $this->loadFixtures();
     }
@@ -37,7 +44,7 @@ class AlbumFixturesTest extends WebTestCase
     {
         $albumCount = $this->entityManager->getRepository(Album::class)->count([]);
 
-        $this->assertGreaterThan(0, $albumCount, 'No albums found after fixture load.');
+        static::assertGreaterThan(0, $albumCount, 'No albums found after fixture load.');
     }
 
     public function testAlbumNamesFixture(): void
@@ -46,22 +53,20 @@ class AlbumFixturesTest extends WebTestCase
 
         $albumNames = array_map(fn($album) => $album->getName(), $albums);
 
-        $this->assertContains('Nature', $albumNames);
-        $this->assertContains('Villes', $albumNames);
-        $this->assertContains('Nourriture', $albumNames);
-        $this->assertContains('Animaux', $albumNames);
-        $this->assertContains('Personnes', $albumNames);
-        $this->assertContains('Divers', $albumNames);
+        static::assertContains('Nature', $albumNames);
+        static::assertContains('Villes', $albumNames);
+        static::assertContains('Nourriture', $albumNames);
+        static::assertContains('Animaux', $albumNames);
+        static::assertContains('Personnes', $albumNames);
+        static::assertContains('Divers', $albumNames);
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
 
-        if ($this->entityManager) {
+        if ($this->entityManager->isOpen()) {
             $this->entityManager->close();
-            $this->entityManager = null;
         }
     }
 }
-

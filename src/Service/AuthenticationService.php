@@ -6,14 +6,16 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class AuthenticationService
 {
-  private $authChecker;
+  private AuthorizationCheckerInterface $authChecker;
 
   public function __construct(AuthorizationCheckerInterface $authChecker)
   {
     $this->authChecker = $authChecker;
   }
-
-  public function getAuthenticationData()
+  /**
+   * @return array<string, bool> Returns an array with keys 'isAdmin' and 'isAuthenticated' and boolean values.
+   */
+  public function getAuthenticationData(): array
   {
     $isAdmin = $this->authChecker->isGranted('ROLE_ADMIN');
 

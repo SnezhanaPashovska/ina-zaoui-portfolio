@@ -3,13 +3,14 @@
 namespace App\Tests\Controller\Functional;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 
 class SecurityControllerTest extends WebTestCase
 {
-  private $client = null;
+  private KernelBrowser $client;
 
   protected function setUp(): void
   {
@@ -18,14 +19,14 @@ class SecurityControllerTest extends WebTestCase
 
     $this->clearUsers();
     $this->loadFixtures(
-      $this->getContainer()->get(UserPasswordHasherInterface::class),
+      static::getContainer()->get(UserPasswordHasherInterface::class),
       ['admin', 'guest']
     );
   }
 
   private function clearUsers(): void
   {
-    $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+    $entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
     $users = $entityManager->getRepository(User::class)->findAll();
 
     foreach ($users as $user) {
@@ -34,13 +35,19 @@ class SecurityControllerTest extends WebTestCase
     $entityManager->flush();
   }
 
+  /**
+   * Load the fixtures for the test.
+   * 
+   * @param UserPasswordHasherInterface $passwordHasher
+   * @param array<string> $tags
+   */
   private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
   {
-    $manager = self::getContainer()->get('doctrine')->getManager();
+    $manager = static::getContainer()->get('doctrine')->getManager();
 
     $fixture = new \App\DataFixtures\AppFixturesTest($passwordHasher, $tags);
-
     $fixture->load($manager);
+
     $manager->flush();
   }
 
@@ -48,8 +55,8 @@ class SecurityControllerTest extends WebTestCase
   {
     $crawler = $this->client->request('GET', '/login');
 
-    $this->assertResponseIsSuccessful();
-    $this->assertSelectorTextContains('h1', 'Connexion');
+    static::assertResponseIsSuccessful();
+    static::assertSelectorTextContains('h1', 'Connexion');
   }
 
   public function testSuccessfulLogin(): void
@@ -62,9 +69,9 @@ class SecurityControllerTest extends WebTestCase
 
     $this->client->submit($form);
 
-    $this->assertResponseRedirects('/');
+    static::assertResponseRedirects('/');
     $this->client->followRedirect();
-    $this->assertSelectorTextContains('h2', 'Photographe');
+    static::assertSelectorTextContains('h2', 'Photographe');
   }
 
   public function testInvalidLogin(): void
@@ -78,6 +85,6 @@ class SecurityControllerTest extends WebTestCase
     $this->client->submit($form);
     $crawler = $this->client->followRedirect();
 
-    $this->assertSelectorExists('.alert.alert-danger');
+    static::assertSelectorExists('.alert.alert-danger');
   }
 }

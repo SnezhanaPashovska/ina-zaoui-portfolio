@@ -7,34 +7,34 @@ use PHPUnit\Framework\TestCase;
 
 class UserTest extends TestCase
 {
-  public function testUserEntity()
+  public function testUserEntity(): void
   {
     $user = new User();
 
-    $this->assertNull($user->getId()); 
+    static::assertNull($user->getId());
 
     $user->setUsername('john_doe');
-    $this->assertEquals('john_doe', $user->getUsername());
+    static::assertEquals('john_doe', $user->getUsername());
 
     $user->setName('John Doe');
-    $this->assertEquals('John Doe', $user->getName());
+    static::assertEquals('John Doe', $user->getName());
 
     $user->setEmail('john.doe@example.com');
-    $this->assertEquals('john.doe@example.com', $user->getEmail());
+    static::assertEquals('john.doe@example.com', $user->getEmail());
 
     $user->setDescription('A brief description of John');
-    $this->assertEquals('A brief description of John', $user->getDescription());
+    static::assertEquals('A brief description of John', $user->getDescription());
 
     $user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
-    $this->assertEquals(['ROLE_USER', 'ROLE_ADMIN'], $user->getRoles());
+    static::assertEquals(['ROLE_USER', 'ROLE_ADMIN'], $user->getRoles());
 
     $user->setPassword('$2y$04$IeNqTlzSlxK8rUvHsBklkuJzn6b9rW0JulJRvil/TKBHt9TxOnPIS');
-    $this->assertEquals('$2y$04$IeNqTlzSlxK8rUvHsBklkuJzn6b9rW0JulJRvil/TKBHt9TxOnPIS', $user->getPassword());
+    static::assertEquals('$2y$04$IeNqTlzSlxK8rUvHsBklkuJzn6b9rW0JulJRvil/TKBHt9TxOnPIS', $user->getPassword());
 
     $user->setIsActive(true);
-    $this->assertTrue($user->isActive());
+    static::assertTrue($user->isActive());
 
     $user->setAdmin(true);
-    $this->assertTrue($user->isAdmin());
+    static::assertTrue($user->isAdmin());
   }
 }

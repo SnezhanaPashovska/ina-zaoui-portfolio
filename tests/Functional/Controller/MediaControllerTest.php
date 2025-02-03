@@ -13,7 +13,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class MediaControllerTest extends WebTestCase
 {
-  private $client;
+  private KernelBrowser $client;
 
   protected function setUp(): void
   {
@@ -25,18 +25,23 @@ class MediaControllerTest extends WebTestCase
     $this->clearUsers();
 
     $this->loadFixtures(
-      $this->getContainer()->get(UserPasswordHasherInterface::class),
+      static::getContainer()->get(UserPasswordHasherInterface::class),
       ['admin', 'guest', 'albums', 'media']
     );
 
-    $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
+    $entityManager = static::getContainer()->get('doctrine')->getManager();
     $adminUser = $entityManager->getRepository(User::class)->findOneBy(['username' => 'ina_zaoui']);
+
+    if ($adminUser === null) {
+      throw new \Exception('Admin user not found.');
+    }
+
     $this->client->loginUser($adminUser);
   }
 
   private function clearMedia(): void
   {
-    $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+    $entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
     $medias = $entityManager->getRepository(Media::class)->findAll();
 
     foreach ($medias as $media) {
@@ -47,7 +52,7 @@ class MediaControllerTest extends WebTestCase
 
   private function clearUsers(): void
   {
-    $entityManager = $this->getContainer()->get('doctrine.orm.entity_manager');
+    $entityManager = static::getContainer()->get('doctrine.orm.entity_manager');
     $users = $entityManager->getRepository(User::class)->findAll();
 
     foreach ($users as $user) {
@@ -56,9 +61,15 @@ class MediaControllerTest extends WebTestCase
     $entityManager->flush();
   }
 
+  /**
+   * Load the fixtures for the test.
+   * 
+   * @param UserPasswordHasherInterface $passwordHasher
+   * @param array<string> $tags
+   */
   private function loadFixtures(UserPasswordHasherInterface $passwordHasher, array $tags): void
   {
-    $manager = self::getContainer()->get('doctrine')->getManager();
+    $manager = static::getContainer()->get('doctrine')->getManager();
 
     $fixture = new AppFixturesTest($passwordHasher, $tags);
     $fixture->load($manager);
@@ -68,7 +79,7 @@ class MediaControllerTest extends WebTestCase
 
   private function ensureTestMediaFileExists(): void
   {
-    $testMediaDir = $this->getContainer()->getParameter('kernel.project_dir') . '/public/uploads/medias/';
+    $testMediaDir = static::getContainer()->getParameter('kernel.project_dir') . '/public/uploads/medias/';
     if (!is_dir($testMediaDir)) {
       mkdir($testMediaDir, 0777, true);
     }
@@ -82,13 +93,19 @@ class MediaControllerTest extends WebTestCase
   public function testIndexAccess(): void
   {
     $this->client->request('GET', '/admin/media');
-    $this->assertResponseIsSuccessful();
+    static::assertResponseIsSuccessful();
   }
 
   public function testAddImage(): void
   {
     $tempFile = tmpfile();
-    $tempFilePath = stream_get_meta_data($tempFile)['uri'];
+    $tempFileMetaData = stream_get_meta_data($tempFile);
+    $tempFilePath = $tempFileMetaData['uri'] ?? null;
+
+    if ($tempFilePath === null) {
+      static::fail('Temporary file URI could not be determined.');
+    }
+
     file_put_contents($tempFilePath, 'test content');
 
     $file = new UploadedFile(
@@ -100,7 +117,7 @@ class MediaControllerTest extends WebTestCase
     );
 
     $crawler = $this->client->request('GET', '/admin/media/add');
-    $this->assertResponseIsSuccessful();
+    static::assertResponseIsSuccessful();
 
     $this->client->request(
       'POST',
@@ -116,16 +133,16 @@ class MediaControllerTest extends WebTestCase
       ['CONTENT_TYPE' => 'multipart/form-data']
     );
 
-    $this->assertResponseIsSuccessful();
+    static::assertResponseIsSuccessful();
   }
 
 
   public function testDeleteMedia(): void
   {
-    $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
+    $entityManager = static::getContainer()->get('doctrine')->getManager();
 
     $media = $entityManager->getRepository(Media::class)->findOneBy(['title' => 'Alpes']);
-    $this->assertNotNull($media, 'No media found in the database.');
+    static::assertNotNull($media, 'No media found in the database.');
 
     $mediaId = $media->getId();
 
@@ -133,9 +150,9 @@ class MediaControllerTest extends WebTestCase
 
     $this->client->request('GET', '/admin/media/delete/' . $mediaId);
 
-    $this->assertResponseRedirects('/admin/media');
+    static::assertResponseRedirects('/admin/media');
 
     $deletedMedia = $entityManager->getRepository(Media::class)->find($mediaId);
-    $this->assertNull($deletedMedia, 'Media was not deleted.');
+    static::assertNull($deletedMedia, 'Media was not deleted.');
   }
 }
