@@ -8,7 +8,7 @@ Le site permet à **Ina Zaoui**, une photographe, de gérer ses propres photos, 
 
 ## 📌 Présentation
 
-Ce projet est une application Symfony permettant aux utilisateurs de gérer des albums et d'ajouter des médias (images, vidéos, etc.).
+Ce projet est une application Symfony permettant aux utilisateurs de gérer des albums et d'ajouter des médias.
 
 ## 🚀 Prérequis
 
