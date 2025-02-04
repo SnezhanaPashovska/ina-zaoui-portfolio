@@ -55,9 +55,6 @@ jobs:
       - name: Run PHPUnit Tests
         run: vendor/bin/phpunit
 
-      - name: Ensure Symfony Cache Directory Exists
-        run: |
-          mkdir -p var/cache/dev/Symfony/Config
 
       - name: Clear and Warm Up Symfony Cache
         run: |
