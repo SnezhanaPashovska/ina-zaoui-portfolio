@@ -6,10 +6,10 @@ services:
       - 5432:5432
     volumes:
       - postgres_db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=winterborn
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=ina_zaoui
+    env:
+      - POSTGRES_PASSWORD=DATABASE_PASSWORD
+      - POSTGRES_USER=DATABASE_USER
+      - POSTGRES_DB=DATABASE_NAME
 volumes:
   postgres_db:
     driver: local
