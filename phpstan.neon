@@ -12,11 +12,11 @@ parameters:
     - src/Entity/User.php
   #ignoreErrors:
   #- '#Method .*::getUserIdentifier\(\) should return non-empty-string but returns string#'
-  symfony:
-    containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
-    consoleApplicationLoader: phpstan/console.php
-  scanDirectories:
-    - var/cache/dev/Symfony/Config(?)
+  #symfony:
+  #containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+  #consoleApplicationLoader: phpstan/console.php
+  #scanDirectories:
+  #- var/cache/dev/Symfony/Config(?)
   doctrine:
     objectManagerLoader: phpstan/doctrine.php
   level: 5
@@ -24,3 +24,5 @@ parameters:
     - config/
     - src/
     - tests/
+    - bin/
+    - public/
