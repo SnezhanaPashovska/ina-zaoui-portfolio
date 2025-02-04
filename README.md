@@ -1,14 +1,11 @@
-# Portfolio d'Ina Zaoui ✨
-
-Bienvenue dans le projet **Portfolio d'Ina Zaoui** ! Il s'agit d'un portfolio personnel développé avec **Symfony**. Ce site présente divers projets et compétences en photographie, ainsi que des photos ajoutées par des invités.
-
-Le site permet à **Ina Zaoui**, une photographe, de gérer ses propres photos, mais aussi de partager des photos soumises par d'autres invités. Les visiteurs peuvent découvrir une galerie dynamique et enrichie de contenus visuels.
-
----
+# Ina Zaoui ✨
 
 ## 📌 Présentation
+Bienvenue dans le projet Portfolio d'Ina Zaoui !
 
-Ce projet est une application Symfony permettant aux utilisateurs de gérer des albums et d'ajouter des médias.
+Il s'agit d'un projet développé dans le cadre de la formation OpenClassrooms. Ce site web, réalisé avec Symfony, simule un portfolio de photographe permettant la gestion d'albums et de médias.
+
+---
 
 ## 🚀 Prérequis
 
