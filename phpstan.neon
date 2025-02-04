@@ -13,10 +13,10 @@ parameters:
   #ignoreErrors:
   #- '#Method .*::getUserIdentifier\(\) should return non-empty-string but returns string#'
   symfony:
-    containerXmlPath: var/cache/test/App_KernelDevDebugContainer.xml
+    containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
     consoleApplicationLoader: phpstan/console.php
   scanDirectories:
-    - var/cache/test/Symfony/Config(?)
+    - var/cache/dev/Symfony/Config(?)
   doctrine:
     objectManagerLoader: phpstan/doctrine.php
   level: 5

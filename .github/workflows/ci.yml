@@ -36,7 +36,7 @@ jobs:
       - name: Start PostgreSQL Docker Container
         run: |
           docker run --name postgres-test -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=ina_zaoui -p 5432:5432 -d postgres:16
-          sleep 15  # Give time for PostgreSQL to start up 
+          sleep 15  # Give time for PostgreSQL to start up
 
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -55,11 +55,15 @@ jobs:
       - name: Run PHPUnit Tests
         run: vendor/bin/phpunit
 
-
       - name: Clear and Warm Up Symfony Cache
         run: |
           php bin/console cache:clear --env=test --no-warmup
           php bin/console cache:warmup --env=test
+
+      - name: Clear and Warm Up Symfony Cache
+        run: |
+          php bin/console cache:clear --env=dev --no-warmup
+          php bin/console cache:warmup --env=dev
 
       - name: Run PHPStan Analysis
         run: php vendor/bin/phpstan analyse
