@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Tests\Controller\Functional;
+namespace App\Tests\Functional\Controller;
 
-use App\DataFixtures\AppFixturesTest;
+use App\Tests\AppFixturesTest;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;

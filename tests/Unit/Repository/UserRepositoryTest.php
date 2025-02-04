@@ -8,7 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use App\DataFixtures\AppFixturesTest;
+use App\Tests\Functional\DataFixtures;
 
 class UserRepositoryTest extends KernelTestCase
 {
@@ -57,7 +57,7 @@ class UserRepositoryTest extends KernelTestCase
   {
     $manager = self::getContainer()->get('doctrine')->getManager();
 
-    $fixture = new \App\DataFixtures\AppFixturesTest($passwordHasher, $tags);
+    $fixture = new \App\Tests\AppFixturesTest($passwordHasher, $tags);
 
     $fixture->load($manager);
     $manager->flush();

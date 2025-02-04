@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Tests\Controller\Functional;
+namespace App\Tests\Functional\Controller;
 
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use App\DataFixtures\AppFixturesTest;
+use App\Tests\AppFixturesTest;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Album;
+use App\Tests\AppFixturesTest as TestsAppFixturesTest;
 
 class AlbumControllerTest extends WebTestCase
 {
@@ -59,7 +60,7 @@ class AlbumControllerTest extends WebTestCase
     {
         $manager = static::getContainer()->get('doctrine')->getManager();
 
-        $fixture = new AppFixturesTest($passwordHasher, $tags);
+        $fixture = new TestsAppFixturesTest($passwordHasher, $tags);
         $fixture->load($manager);
 
         $manager->clear();

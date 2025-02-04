@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Controller\Admin;
+namespace App\Tests\Functional\Controller;
 
 use App\Entity\Album;
 use App\Entity\Media;
@@ -8,7 +8,7 @@ use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use App\DataFixtures\AppFixturesTest;
+use App\Tests\AppFixturesTest;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class MediaControllerTest extends WebTestCase

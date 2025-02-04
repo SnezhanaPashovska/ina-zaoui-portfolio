@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Controller\Functional;
+namespace App\Tests\Functional\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,7 +48,7 @@ final class GuestControllerTest extends WebTestCase
     {
         $manager = static::getContainer()->get('doctrine')->getManager();
 
-        $fixture = new \App\DataFixtures\AppFixturesTest($passwordHasher, $tags);
+        $fixture = new \App\Tests\AppFixturesTest($passwordHasher, $tags);
         $fixture->load($manager);
 
         $manager->flush();

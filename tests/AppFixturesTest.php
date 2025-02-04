@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DataFixtures;
+namespace App\Tests;
 
 use App\Entity\Album;
 use App\Entity\Media;
