@@ -32,17 +32,12 @@ jobs:
 
       - name: Build Project
         run: |
-          if [ -f "docker-compose.yml" ]; then
-            docker compose -f "docker-compose.yml" up -d --build
-          fi
-          php bin/console doctrine:database:drop -f --if-exists --env=test
+          composer install
+          php bin/console doctrine:database:drop --force --env=test
           php bin/console doctrine:database:create --env=test
-          php bin/console doctrine:migrations:migrate -n --env=test
+          php bin/console doctrine:schema:update --force --env=test
           php bin/console doctrine:fixtures:load -n --purge-with-truncate --env=test
-          php bin/console sass:build || echo "SASS build failed, continuing..."
-
       - name: Run PHPUnit Tests
         run: vendor/bin/phpunit
-
       - name: Run PHPStan Analysis
-        run: vendor/bin/phpstan analyse src --level=max
+        run: php vendor/bin/phpstan
