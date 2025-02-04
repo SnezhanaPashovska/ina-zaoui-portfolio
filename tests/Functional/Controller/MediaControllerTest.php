@@ -100,11 +100,11 @@ class MediaControllerTest extends WebTestCase
   {
     $tempFile = tmpfile();
     $tempFileMetaData = stream_get_meta_data($tempFile);
-    $tempFilePath = $tempFileMetaData['uri'] ?? null;
+    $tempFilePath = $tempFileMetaData['uri'];
 
-    if ($tempFilePath === null) {
+    /*if ($tempFilePath === null) {
       static::fail('Temporary file URI could not be determined.');
-    }
+    }*/
 
     file_put_contents($tempFilePath, 'test content');
 
