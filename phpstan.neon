@@ -16,7 +16,7 @@ parameters:
     containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
     consoleApplicationLoader: phpstan/console.php
   scanDirectories:
-    - var/cache/dev/Symfony/Config(?)
+    - var/cache/prod/Symfony/Config(?)
   doctrine:
     objectManagerLoader: phpstan/doctrine.php
   level: 5
