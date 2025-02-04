@@ -32,7 +32,7 @@ jobs:
 
       - name: Setup database
         run: |
-          
+          symfony console doctrine:database:drop -f --if-exists,
           php bin/console doctrine:database:create --env=test
           php bin/console doctrine:schema:update --force --env=test
           php bin/console doctrine:fixtures:load --env=test --no-interaction
