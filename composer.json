@@ -73,6 +73,22 @@
         "symfony/polyfill-php72": "*"
     },
     "scripts": {
+        "db": [
+            "symfony console doctrine:database:drop -f --if-exists",
+            "symfony console doctrine:database:create",
+            "symfony console doctrine:migrations:migrate -n",
+            "symfony console doctrine:fixtures:load -n --purge-with-truncate"
+        ],
+        "db-test": [
+            "symfony console doctrine:database:drop -f --if-exists --env=test",
+            "symfony console doctrine:database:create --env=test",
+            "symfony console doctrine:migrations:migrate -n --env=test",
+            "symfony console doctrine:fixtures:load -n --purge-with-truncate --env=test"
+        ],
+        "test": [
+            "composer db-test",
+            "symfony php bin/phpunit"
+        ],
         "auto-scripts": {
             "cache:clear": "echo 'cache:clear executed'",
             "assets:install %PUBLIC_DIR%": "echo 'assets:install executed'"
