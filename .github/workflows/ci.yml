@@ -61,4 +61,4 @@ jobs:
           php bin/console cache:warmup --env=test
 
       - name: Run PHPStan Analysis
-        run: php vendor/bin/phpstan
+        run: php vendor/bin/phpstan analyse
