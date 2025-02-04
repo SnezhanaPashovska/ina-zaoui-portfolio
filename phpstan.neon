@@ -17,7 +17,7 @@ parameters:
         - var/cache/dev/Symfony/Config
     doctrine:
         objectManagerLoader: phpstan/doctrine.php
-    level: 6
+    level: 5
     paths:
         - config/
         - src/

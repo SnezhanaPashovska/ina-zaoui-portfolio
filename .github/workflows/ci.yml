@@ -55,5 +55,10 @@ jobs:
       - name: Run PHPUnit Tests
         run: vendor/bin/phpunit
 
+      - name: Clear and Warm Up Symfony Cache
+        run: |
+          php bin/console cache:clear --env=test --no-warmup
+          php bin/console cache:warmup --env=test
+
       - name: Run PHPStan Analysis
         run: php vendor/bin/phpstan
