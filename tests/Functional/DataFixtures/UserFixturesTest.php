@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\DataFixtures;
+namespace App\Tests\Functional\DataFixtures;
 
 use App\DataFixtures\UserFixtures;
 use App\Entity\User;
