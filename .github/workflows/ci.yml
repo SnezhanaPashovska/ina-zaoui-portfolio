@@ -33,6 +33,12 @@ jobs:
       - name: Set DATABASE_URL for CI
         run: echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ina_zaoui?serverVersion=16&charset=utf8" >> $GITHUB_ENV
 
+      - name: Install Docker Compose
+        run: |
+          curl -sSL https://github.com/docker/compose/releases/download/v2.16.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
       - name: Start Services
         run: docker-compose up -d
              sleep 15  # Give time for PostgreSQL to start up
