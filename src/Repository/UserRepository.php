@@ -75,14 +75,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('admin', false)
             ->setParameter('active', true)
             ->leftJoin('u.medias', 'm')
-            ->addSelect('m');
-
-        $query = $queryBuilder->getQuery();
-
-        $query->setFirstResult(($page - 1) * $limit)
+            ->addSelect('m')
+            ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
 
-        return new Paginator($query, true);
+        return new Paginator($queryBuilder->getQuery(), true);
     }
 
     /**

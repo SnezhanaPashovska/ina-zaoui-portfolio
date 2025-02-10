@@ -6,7 +6,7 @@
 			<h3 class="mb-4">Portfolio</h3>
 			<div class="mb-5 row">
 				<div class="col-2">
-					<a class="btn w-100 py-3 {{ album is null ? 'active' }}" href="{{ path('portfolio') }}">
+					<a class="btn w-100 py-3 {{ album is null ? 'active' }}" href="{{ path('portfolio_all') }}">
 						Toutes
 					</a>
 				</div>
@@ -26,6 +26,18 @@
 					</div>
 				{% endfor %}
 			</div>
+			<!-- Pagination -->
+			{% if totalPages > 1 %}
+				<div class="pagination mt-4">
+					{% if currentPage > 1 %}
+						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', {id: album.id, page: currentPage - 1}) }}" class="btn btn-primary">Précédent</a>
+					{% endif %}
+
+					{% if currentPage < totalPages %}
+						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', {id: album.id, page: currentPage + 1}) }}" class="btn btn-primary">Suivant</a>
+					{% endif %}
+				</div>
+			{% endif %}
 
 		</div>
 	</div>

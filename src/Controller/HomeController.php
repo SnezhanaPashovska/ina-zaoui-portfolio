@@ -46,12 +46,14 @@ class HomeController extends AbstractController
 
         $authenticationData = $this->authService->getAuthenticationData();
 
+
         return $this->render('front/guests.html.twig', array_merge([
             'guests' => $paginator,
             'currentPage' => $page,
             'totalPages' => ceil(count($paginator) / $limit),
         ], $authenticationData));
     }
+
 
     #[Route("/guest/{id}", name: "guest")]
     public function guest(int $id, Request $request, MediaRepository $mediaRepository): Response
@@ -63,9 +65,13 @@ class HomeController extends AbstractController
         }
 
         $page = $request->query->getInt('page', 1);
-        $limit = 5;
+        $limit = 9;
 
         $images = $mediaRepository->findPaginatedMediaByUser($id, $page, $limit);
+
+        $totalImages = count($mediaRepository->findBy(['user' => $id]));
+
+        $totalPages = ceil($totalImages / $limit);
 
         $authenticationData = $this->authService->getAuthenticationData();
 
@@ -73,17 +79,21 @@ class HomeController extends AbstractController
             'guest' => $guest,
             'images' => $images,
             'currentPage' => $page,
+            'totalPages' => $totalPages,
         ], $authenticationData));
     }
 
-
+    #[Route("/portfolio", name: "portfolio_all")]
     #[Route("/portfolio/{id}", name: "portfolio")]
-    public function portfolio(?int $id = null): Response
+    public function portfolio(?int $id = null, Request $request): Response
 
     {
 
         $albums = $this->entityManager->getRepository(Album::class)->findAll();
         $album = $id !== null ? $this->entityManager->getRepository(Album::class)->find($id) : null;
+
+        $page = $request->query->getInt('page', 1);
+        $limit = 9;
 
         if ($album !== null) {
             $medias = $this->entityManager->getRepository(Media::class)->findByAlbum($album);
@@ -93,16 +103,22 @@ class HomeController extends AbstractController
 
         $medias = array_filter($medias, function ($media) {
             $user = $media->getUser();
-            return $user !== null && $user->isActive(); // Only keep media for active users
+            return $user !== null && $user->isActive();
         });
 
+        $totalMedias = count($medias);
+        $totalPages = ceil($totalMedias / $limit);
 
+
+        $medias = array_slice($medias, ($page - 1) * $limit, $limit);
         $authenticationData = $this->authService->getAuthenticationData();
 
         return $this->render('front/portfolio.html.twig', array_merge([
             'albums' => $albums,
             'album' => $album,
-            'medias' => $medias
+            'medias' => $medias,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
         ], $authenticationData));
     }
 

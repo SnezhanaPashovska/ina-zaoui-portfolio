@@ -4,17 +4,25 @@
 	<div class="row">
 		<div class="col-12">
 			<h3 class="mb-5">Invités</h3>
-			{% cache 'guests_list_' ~ currentPage ~ '_' ~ guests|length %}
+
+			{% set cacheKey = 'guests_list_' ~ currentPage ~ '_' ~ guests|length ~ '_' ~ "now"|date('U') %}
+			{% cache cacheKey %}
 			<div class="guests d-flex flex-column">
 				{% for guest in guests %}
 					<div class="guest py-5 d-flex justify-content-between align-items-center">
 						<h4>{{ guest.name }}
-							({{ guest.medias|length }})</h4>
+							{% set mediaCacheKey = 'media_count_' ~ guest.id ~ '_' ~ "now"|date('U') %}
+							{% cache mediaCacheKey %}
+							({{ guest.medias|length }})
+							{% endcache %}
+						</h4>
 						<a href="{{ path('guest', {id: guest.id}) }}">découvrir</a>
 					</div>
 				{% endfor %}
 			</div>
 			{% endcache %}
+
+
 			{# Pagination controls #}
 			<div class="pagination">
 				{% if currentPage > 1 %}

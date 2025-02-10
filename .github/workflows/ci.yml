@@ -31,12 +31,11 @@ jobs:
         run: composer install --no-progress --prefer-dist
 
       - name: Set DATABASE_URL for CI
-        run: echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ina_zaoui?serverVersion=16&charset=utf8" >> $GITHUB_ENV
+        run: echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ina_zaoui?serverVersion=16&charset=utf8" >> $GITHUB_ENV
 
-      - name: Start PostgreSQL Docker Container
-        run: |
-          docker run --name postgres-test -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=ina_zaoui -p 5432:5432 -d postgres:16
-          sleep 15  # Give time for PostgreSQL to start up
+      - name: Start Services
+        run: docker-compose up -d
+             sleep 15  # Give time for PostgreSQL to start up
 
       - name: Wait for PostgreSQL to be ready
         run: |
