@@ -85,7 +85,7 @@ class HomeController extends AbstractController
 
     #[Route("/portfolio", name: "portfolio_all")]
     #[Route("/portfolio/{id}", name: "portfolio")]
-    public function portfolio(?int $id = null, Request $request): Response
+    public function portfolio(Request $request, ?int $id = null): Response
 
     {
 

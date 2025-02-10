@@ -26,22 +26,18 @@ final class GuestController extends AbstractController
     public function guestList(Request $request, UserRepository $userRepository): Response
     {
         $page = (int) $request->query->get('page', '1');
-
         $limit = 5;
-
         $user = $this->getUser();
         $isAdmin = $user !== null && in_array('ROLE_ADMIN', $user->getRoles(), true);
 
-
         if ($isAdmin) {
-            $paginationData = $userRepository->findAllPaginated($page, $limit);
+            $paginator = $userRepository->findAllPaginated($page, $limit);
         } else {
-
-            $paginationData = $userRepository->findActiveUsersPaginated($page, $limit);
+            $paginator = $userRepository->findActiveUsersPaginated($page, $limit);
         }
 
-        $guests = $paginationData['data'];
-        $totalCount = $paginationData['totalCount'];
+        $guests = iterator_to_array($paginator->getIterator());
+        $totalCount = count($paginator);
         $totalPages = ceil($totalCount / $limit);
 
         return $this->render('guests-list.html.twig', [
