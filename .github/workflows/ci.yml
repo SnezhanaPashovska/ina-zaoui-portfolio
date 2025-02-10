@@ -41,7 +41,6 @@ jobs:
 
       - name: Start Services
         run: docker-compose up -d
-             sleep 15  # Give time for PostgreSQL to start up
 
       - name: Wait for PostgreSQL to be ready
         run: |
