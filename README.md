@@ -67,6 +67,6 @@ Pour exécuter les tests :
 php bin/phpunit
 ```
 
-## ## 🤝 Contribuer
+## 🤝 Contribuer
 
 Si vous souhaitez contribuer, veuillez consulter le fichier [CONTRIBUTING.md](./CONTRIBUTING.md) pour des instructions détaillées sur la manière de contribuer au projet.
