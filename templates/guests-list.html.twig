@@ -12,7 +12,7 @@
 				<th>Nom</th>
 				<th>Nom d'utilisation</th>
 				<th>Email</th>
-				<th>Status</th>
+				<th>Statut</th>
 				<th>Description</th>
 				<th>Actions</th>
 			</tr>
@@ -26,7 +26,7 @@
 					<td>
 						<form method="POST" action="{{ path('admin_access_guest', { id: guest.id }) }}">
 							<button type="submit" class="btn {{ guest.isActive ? 'btn-success' : 'btn-danger' }}">
-								{{ guest.isActive ? 'Active' : 'Bloqué' }}
+								{{ guest.isActive ? 'Actif' : 'Bloqué' }}
 							</button>
 						</form>
 					</td>
