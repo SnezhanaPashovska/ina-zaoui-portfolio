@@ -46,7 +46,7 @@ composer install
     DATABASE_URL="postgresql://<utilisateur>:<mot_de_passe>@127.0.0.1:5432/ina_zaoui"
 ````
 
-Remplacez <utilisateur> et <mot_de_passe> par vos identifiants.
+Remplacez [utilisateur] et [mot_de_passe] par vos identifiants.
 
 ## 🚀 Utilisation
 
