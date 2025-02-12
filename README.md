@@ -1,6 +1,7 @@
 # Ina Zaoui ✨
 
 ## 📌 Présentation
+
 Bienvenue dans le projet Portfolio d'Ina Zaoui !
 
 Il s'agit d'un projet développé dans le cadre de la formation OpenClassrooms. Ce site web, réalisé avec Symfony, simule un portfolio de photographe permettant la gestion d'albums et de médias.
@@ -39,9 +40,11 @@ composer install
 
 ### 1. Configurer la Base de Données :
 
-Ouvrez le fichier .env et mettez à jour l'URL de la base de données avec vos informations PostgreSQL :
+- Ouvrez le fichier `.env`et mettez à jour l'URL de la base de données avec vos informations PostgreSQL :
 
-DATABASE_URL="postgresql://<utilisateur>:<mot_de_passe>@127.0.0.1:5432/ina_zaoui"
+````env
+    DATABASE_URL="postgresql://<utilisateur>:<mot_de_passe>@127.0.0.1:5432/ina_zaoui"
+````
 
 Remplacez <utilisateur> et <mot_de_passe> par vos identifiants.
 
@@ -53,7 +56,7 @@ Lancez le serveur avec :
 
 ```bash
 symfony server:start
-```
+````
 
 ### 2. Accéder au Projet :
 

@@ -39,14 +39,14 @@ Avant de commencer, assurez-vous d'avoir installé les outils suivants :
      DATABASE_URL="postgresql://<utilisateur>:<mot_de_passe>@127.0.0.1:5432/ina_zaoui"
      ```
 
-4. **Exécuter les migrations :**
+4. **Initialisation de base de données:**
 
-   - Créez les tables de la base de données :
-     ```bash
-     php bin/console doctrine:migrations:migrate
-     ```
+5. Créer la base de données: php bin/console doctrine:database:create
+6. Générer la migration: php bin/console make:migration
+7. Exécuter la migration : php bin/console doctrine:migrations:migrate
+8. Charger les fixtures: php bin/console doctrine:fixtures:load
 
-5. **Lancer le projet :**
+9. **Lancer le projet :**
 
    - Utilisez Symfony pour démarrer le serveur de développement :
 
