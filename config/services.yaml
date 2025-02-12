@@ -24,11 +24,6 @@ services:
     App\Controller\:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
-
-    App\DataFixtures\UserFixtures:
-        arguments:
-         $passwordHasher: '@Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface'
-         $entityManager: '@doctrine.orm.entity_manager'
     
 
     
