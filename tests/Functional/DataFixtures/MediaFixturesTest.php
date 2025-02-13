@@ -3,11 +3,9 @@
 namespace App\Tests\Functional\DataFixtures;
 
 use App\DataFixtures\MediaFixtures;
-use App\Tests\AppFixturesTest;
-use App\Entity\Album;
+use App\DataFixtures\UserFixtures;
+use App\DataFixtures\AlbumFixtures;
 use App\Entity\Media;
-use App\Entity\User;
-use PHPUnit\Framework\Assert;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
@@ -17,68 +15,61 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class MediaFixturesTest extends WebTestCase
 {
-  private ?EntityManagerInterface $entityManager = null;
+  private EntityManagerInterface $entityManager;
 
   protected function setUp(): void
   {
     parent::setUp();
 
-    self::bootKernel();
-    $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+    $client = static::createClient();
+    $entityManager = $client->getContainer()->get('doctrine')->getManager();
 
+    if (!$entityManager instanceof EntityManagerInterface) {
+      throw new \RuntimeException('Entity manager is not an instance of EntityManagerInterface');
+    }
+
+    $this->entityManager = $entityManager;
     $this->loadFixtures();
   }
 
   protected function loadFixtures(): void
   {
     $container = static::getContainer();
-    $passwordHasher = $container->get(UserPasswordHasherInterface::class);
+    $hasher = $container->get(UserPasswordHasherInterface::class);
+    $userFixtures = new UserFixtures($hasher);
 
-    // Load the fixtures
-    $loader = new Loader();
-    $loader->addFixture(new AppFixturesTest($passwordHasher, ['admin', 'guest', 'albums', 'media']));
+    $albumFixtures = new AlbumFixtures();
+    $mediaFixtures = new MediaFixtures();
 
     $purger = new ORMPurger($this->entityManager);
     $executor = new ORMExecutor($this->entityManager, $purger);
-    $executor->execute($loader->getFixtures());
+
+    $executor->execute([$userFixtures, $albumFixtures, $mediaFixtures]);
   }
 
   public function testMediaFixture(): void
-    {
-        // Check if the entity manager is not null
-        Assert::assertNotNull($this->entityManager);
+  {
+    $mediaCount = $this->entityManager->getRepository(Media::class)->count([]);
 
-        // Retrieve the media repository and check if the media exists
-        $mediaRepository = $this->entityManager->getRepository(Media::class);
-        $media = $mediaRepository->findOneBy(['title' => 'Alpes']);
-        Assert::assertNotNull($media);
-    }
+    static::assertGreaterThan(0, $mediaCount, 'No media found after fixture load.');
+  }
 
-    public function testMediaRelationships(): void
-    {
-        // Check if the entity manager is not null
-        Assert::assertNotNull($this->entityManager);
+  public function testMediaAttributes(): void
+  {
+    $media = $this->entityManager->getRepository(Media::class)->findOneBy(['title' => 'Beach']);
 
-        // Retrieve the media repository and check if relationships are set correctly
-        $mediaRepository = $this->entityManager->getRepository(Media::class);
-        $media = $mediaRepository->findOneBy(['title' => 'Alpes']);
+    static::assertNotNull($media, 'Media with title "Beach" not found.');
+    static::assertSame('/uploads/0006.jpg', $media->getPath(), 'Media path does not match.');
+    static::assertNotNull($media->getUser(), 'Media does not have an associated User.');
+    static::assertNotNull($media->getAlbum(), 'Media does not have an associated Album.');
+  }
 
-        // Explicit null check for the media entity
-        if ($media !== null) {
-            Assert::assertNotNull($media->getUser()); // User relationship
-            Assert::assertNotNull($media->getAlbum()); // Album relationship
-        } else {
-            Assert::fail("Media 'Alpes' not found.");
-        }
-    }
-  
   protected function tearDown(): void
   {
     parent::tearDown();
-    // Explicitly check if entityManager is not null
-    if ($this->entityManager !== null) {
+
+    if ($this->entityManager->isOpen()) {
       $this->entityManager->close();
-      $this->entityManager = null;
     }
   }
 }

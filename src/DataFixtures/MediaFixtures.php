@@ -9,8 +9,11 @@ use App\Entity\User;
 use App\Entity\Album;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
+
 class MediaFixtures extends Fixture implements DependentFixtureInterface
 {
+    
+    
     public function load(ObjectManager $manager): void
     {
 
