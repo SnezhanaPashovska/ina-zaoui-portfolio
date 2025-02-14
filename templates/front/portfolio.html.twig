@@ -27,17 +27,25 @@
 				{% endfor %}
 			</div>
 			<!-- Pagination -->
+
 			{% if totalPages > 1 %}
 				<div class="pagination mt-4">
 					{% if currentPage > 1 %}
-						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', {id: album.id, page: currentPage - 1}) }}" class="btn btn-primary">Précédent</a>
+						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', album is null ? {page: currentPage - 1} : {id: album.id, page: currentPage - 1}) }}" class="btn btn-primary">Précédent</a>
 					{% endif %}
 
+					{% for i in 1..totalPages %}
+						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', album is null ? {page: i} : {id: album.id, page: i}) }}" class="btn btn-primary {% if currentPage == i %}active{% endif %}">
+							{{ i }}
+						</a>
+					{% endfor %}
+
 					{% if currentPage < totalPages %}
-						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', {id: album.id, page: currentPage + 1}) }}" class="btn btn-primary">Suivant</a>
+						<a href="{{ path(album is null ? 'portfolio_all' : 'portfolio', album is null ? {page: currentPage + 1} : {id: album.id, page: currentPage + 1}) }}" class="btn btn-primary">Suivant</a>
 					{% endif %}
 				</div>
 			{% endif %}
+
 
 		</div>
 	</div>

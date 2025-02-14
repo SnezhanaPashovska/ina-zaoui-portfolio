@@ -65,7 +65,7 @@ class HomeController extends AbstractController
         }
 
         $page = $request->query->getInt('page', 1);
-        $limit = 9;
+        $limit = 6;
 
         $images = $mediaRepository->findPaginatedMediaByUser($id, $page, $limit);
 
