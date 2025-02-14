@@ -26,16 +26,16 @@
 			{# Pagination controls #}
 			<div class="pagination">
 				{% if currentPage > 1 %}
-					<a href="{{ path('guests', {page: currentPage - 1}) }}">Précédent</a>
+					<a href="{{ path('guests', {page: currentPage - 1}) }}" class="btn btn-primary">Précédent</a>
 				{% endif %}
 
-				<span>Page
-					{{ currentPage }}
-					sur
-					{{ totalPages }}</span>
+				
+    {% for i in 1..totalPages %}
+        <a href="{{ path('guests', {page: i}) }}" class="btn btn-primary {% if currentPage == i %}active{% endif %}">{{ i }}</a>
+    {% endfor %}
 
 				{% if currentPage < totalPages %}
-					<a href="{{ path('guests', {page: currentPage + 1}) }}">Suivant</a>
+					<a href="{{ path('guests', {page: currentPage + 1}) }}" class="btn btn-primary">Suivant</a>
 				{% endif %}
 			</div>
 		</div>
