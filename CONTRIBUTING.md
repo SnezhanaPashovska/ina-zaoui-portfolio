@@ -54,6 +54,13 @@ Avant de commencer, assurez-vous d'avoir installé les outils suivants :
      symfony server:start
      ```
 
+10. **Informations supplémentaires**
+
+    - Le compte administrateur est créé lors du chargement des fixtures et les identifiants sont les suivants :
+
+    - - nom d'utilisateur : ina_zaoui
+    - - mot de passe : password123
+
 ---
 
 ## Workflow GitHub
